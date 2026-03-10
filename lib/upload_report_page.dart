@@ -19,7 +19,6 @@ class _UploadReportPageState extends State<UploadReportPage> {
       type: FileType.custom,
       allowedExtensions: ['pdf', 'jpg', 'png'],
     );
-
     if (result != null) {
       setState(() {
         for (var file in result.files) {

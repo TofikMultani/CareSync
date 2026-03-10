@@ -3,8 +3,8 @@ import 'doctor_patients_page.dart';
 import 'doctor_prescriptions.dart';
 import 'approve_requests_page.dart';
 import 'doctor_appointments_page.dart';
+import 'login_page.dart';
 //import 'doctor_patient_history_page.dart';
-
 
 class DoctorPage extends StatelessWidget {
   const DoctorPage({super.key});
@@ -34,7 +34,6 @@ class DoctorPage extends StatelessWidget {
                     ),
                   ),
                 ),
-
                 Positioned(
                   top: 50,
                   left: 16,
@@ -90,7 +89,8 @@ class DoctorPage extends StatelessWidget {
                                 context: context,
                                 builder: (ctx) => AlertDialog(
                                   title: const Text("Logout"),
-                                  content: const Text("Are you sure you want to logout?"),
+                                  content: const Text(
+                                      "Are you sure you want to logout?"),
                                   actions: [
                                     TextButton(
                                       onPressed: () => Navigator.pop(ctx),
@@ -102,7 +102,13 @@ class DoctorPage extends StatelessWidget {
                                       ),
                                       onPressed: () {
                                         Navigator.pop(ctx);
-                                        Navigator.pop(context); // go back to login
+                                        Navigator.pushAndRemoveUntil(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (_) =>
+                                                  const LoginPage()),
+                                          (route) => false,
+                                        );
                                       },
                                       child: const Text("Logout"),
                                     ),
@@ -171,7 +177,8 @@ class DoctorPage extends StatelessWidget {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const DoctorReportsPage()),
+                            MaterialPageRoute(
+                                builder: (_) => const DoctorReportsPage()),
                           );
                         },
                       ),
@@ -194,7 +201,8 @@ class DoctorPage extends StatelessWidget {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const DoctorAppointmentsPage()),
+                            MaterialPageRoute(
+                                builder: (_) => const DoctorAppointmentsPage()),
                           );
                         },
                       ),
@@ -232,8 +240,7 @@ class DoctorPage extends StatelessWidget {
                   // 🔸 Pending Requests
                   const Text(
                     "Pending Patient Requests",
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
 
@@ -306,8 +313,8 @@ class _ActionCard extends StatelessWidget {
               Text(
                 title,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontWeight: FontWeight.w600, fontSize: 14),
+                style:
+                    const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
               ),
             ],
           ),

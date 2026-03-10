@@ -7,8 +7,6 @@ import 'app_drawer.dart';
 import 'support_page.dart';
 import 'upload_report_page.dart';
 
-
-
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -19,25 +17,31 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
 
-  void _onBottomNavTap(int index) {
+  Future<void> _onBottomNavTap(int index) async {
     setState(() {
       _currentIndex = index;
     });
 
     if (index == 1) {
-      Navigator.push(
+      await Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const SupportPage()),
       );
-    } 
-    else if (index == 2) {
-      Navigator.push(
+      if (!mounted) return;
+      setState(() {
+        _currentIndex = 0;
+      });
+    } else if (index == 2) {
+      await Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const PatientProfilePage()),
       );
+      if (!mounted) return;
+      setState(() {
+        _currentIndex = 0;
+      });
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -154,10 +158,8 @@ class _HomePageState extends State<HomePage> {
                       leading:
                           const Icon(Icons.event_available, color: Colors.teal),
                       title: const Text("Dr. Sharma"),
-                      subtitle:
-                          const Text("Tomorrow • 10:00 AM • Cardiology"),
-                      trailing:
-                          const Icon(Icons.arrow_forward_ios, size: 16),
+                      subtitle: const Text("Tomorrow • 10:00 AM • Cardiology"),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                       onTap: () {
                         Navigator.push(
                           context,
@@ -177,12 +179,10 @@ class _HomePageState extends State<HomePage> {
 
                   Card(
                     child: ListTile(
-                      leading:
-                          const Icon(Icons.medication, color: Colors.teal),
+                      leading: const Icon(Icons.medication, color: Colors.teal),
                       title: const Text("Paracetamol"),
                       subtitle: const Text("1 Tablet - Morning & Night"),
-                      trailing:
-                          const Icon(Icons.arrow_forward_ios, size: 16),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                       onTap: () {
                         Navigator.push(
                           context,
@@ -206,8 +206,7 @@ class _HomePageState extends State<HomePage> {
                           const Icon(Icons.description, color: Colors.teal),
                       title: const Text("Blood Test Report"),
                       subtitle: const Text("Uploaded on 12 Jan 2026"),
-                      trailing:
-                          const Icon(Icons.arrow_forward_ios, size: 16),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                       onTap: () {
                         Navigator.push(
                           context,
@@ -281,7 +280,6 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         selectedItemColor: Colors.teal,
