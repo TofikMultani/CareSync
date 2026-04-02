@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'home_page.dart';
-import 'doctor_page.dart';
-import 'admin_page.dart';
+import 'package:healthcare_system/screens/patient/home_page.dart';
+import 'package:healthcare_system/screens/doctor/doctor_page.dart';
+import 'package:healthcare_system/screens/admin/admin_page.dart';
 
 class RoleSelectionPage extends StatelessWidget {
   const RoleSelectionPage({super.key});

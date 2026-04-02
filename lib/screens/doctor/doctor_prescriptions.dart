@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'notification_service.dart';
+import 'package:healthcare_system/notification_service.dart';
 
 // Dummy pages (replace with your actual pages)
 class DoctorReportsPage extends StatelessWidget {

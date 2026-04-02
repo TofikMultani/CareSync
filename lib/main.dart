@@ -4,7 +4,7 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 import 'splash_screen.dart';
-import 'notification_service.dart';
+import 'package:healthcare_system/notification_service.dart';
 
 final FlutterLocalNotificationsPlugin notificationsPlugin =
     FlutterLocalNotificationsPlugin();

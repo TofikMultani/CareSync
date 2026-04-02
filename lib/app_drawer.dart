@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'home_page.dart';
-import 'login_page.dart';
-import 'appointment_page.dart';
-import 'report_page.dart';
-import 'prescription_page.dart';
-// import 'patient_profile_page.dart'; // ❌ Removed
+import 'package:healthcare_system/screens/patient/home_page.dart';
+import 'package:healthcare_system/login_page.dart';
+import 'package:healthcare_system/screens/patient/appointment_page.dart';
+import 'package:healthcare_system/screens/patient/report_page.dart';
+import 'package:healthcare_system/screens/patient/prescription_page.dart';
+// import 'package:healthcare_system/screens/patient/patient_profile_page.dart'; // ❌ Removed
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});

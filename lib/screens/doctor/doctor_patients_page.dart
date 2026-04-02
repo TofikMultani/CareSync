@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'patient_details_page.dart';
+import 'package:healthcare_system/screens/patient/patient_details_page.dart';
 
 class DoctorPatientsPage extends StatelessWidget {
   const DoctorPatientsPage({super.key});

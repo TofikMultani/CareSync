@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'doctor_prescriptions.dart';
-//import 'upload_report_page.dart';
+import 'package:healthcare_system/screens/doctor/doctor_prescriptions.dart';
+//import 'package:healthcare_system/screens/patient/upload_report_page.dart';
 
 
 class PatientProfilePage extends StatelessWidget {

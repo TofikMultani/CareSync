@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'appointment_page.dart';
-import 'report_page.dart';
-import 'prescription_page.dart';
-import 'patient_profile_page.dart';
-import 'app_drawer.dart';
-import 'support_page.dart';
-import 'upload_report_page.dart';
+import 'package:healthcare_system/screens/patient/appointment_page.dart';
+import 'package:healthcare_system/screens/patient/report_page.dart';
+import 'package:healthcare_system/screens/patient/prescription_page.dart';
+import 'package:healthcare_system/screens/patient/patient_profile_page.dart';
+import 'package:healthcare_system/app_drawer.dart';
+import 'package:healthcare_system/screens/patient/support_page.dart';
+import 'package:healthcare_system/screens/patient/upload_report_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'prescription_details_page.dart';
+import 'package:healthcare_system/screens/patient/prescription_details_page.dart';
 
 class PrescriptionPage extends StatelessWidget {
   const PrescriptionPage({super.key});

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'doctor_patients_page.dart';
-import 'doctor_prescriptions.dart';
-import 'approve_requests_page.dart';
-import 'doctor_appointments_page.dart';
-import 'login_page.dart';
-//import 'doctor_patient_history_page.dart';
+import 'package:healthcare_system/screens/doctor/doctor_patients_page.dart';
+import 'package:healthcare_system/screens/doctor/doctor_prescriptions.dart';
+import 'package:healthcare_system/screens/admin/approve_requests_page.dart';
+import 'package:healthcare_system/screens/doctor/doctor_appointments_page.dart';
+import 'package:healthcare_system/login_page.dart';
+//import 'package:healthcare_system/screens/doctor/doctor_patient_history_page.dart';
 
 class DoctorPage extends StatelessWidget {
   const DoctorPage({super.key});

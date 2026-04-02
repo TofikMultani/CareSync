@@ -1,7 +1,7 @@
-import 'staff_page.dart';
-import 'laboratory_page.dart';
-import 'login_page.dart'; // add this import at top
-import 'doctor_page.dart';
+import 'package:healthcare_system/screens/admin/staff_page.dart';
+import 'package:healthcare_system/screens/admin/laboratory_page.dart';
+import 'package:healthcare_system/login_page.dart'; // add this import at top
+import 'package:healthcare_system/screens/doctor/doctor_page.dart';
 import 'package:flutter/material.dart';
 
 class AdminPage extends StatelessWidget {
