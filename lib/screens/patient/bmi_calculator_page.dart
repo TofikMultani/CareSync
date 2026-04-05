@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 class BMICalculatorPage extends StatefulWidget {
@@ -203,11 +204,6 @@ class _BMICalculatorPageState extends State<BMICalculatorPage> {
   }
 
   Widget _buildBMIDiagramMeter() {
-    const double minBmi = 10;
-    const double maxBmi = 40;
-
-    final double normalized = (_meterValue - minBmi) / (maxBmi - minBmi);
-
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -225,69 +221,25 @@ class _BMICalculatorPageState extends State<BMICalculatorPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'BMI Diagram Meter',
+            'BMI Speed Meter',
             style: TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w700,
               color: Colors.black87,
             ),
           ),
-          const SizedBox(height: 12),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final double markerLeft =
-                  (constraints.maxWidth - 22) * normalized;
-
-              return SizedBox(
-                height: 52,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Positioned.fill(
-                      top: 22,
-                      child: Row(
-                        children: [
-                          _meterSegment(color: Colors.orange.shade300),
-                          _meterSegment(color: Colors.green.shade400),
-                          _meterSegment(color: Colors.deepOrange.shade300),
-                          _meterSegment(color: Colors.red.shade400),
-                        ],
-                      ),
-                    ),
-                    Positioned(
-                      left: markerLeft,
-                      top: 0,
-                      child: Column(
-                        children: [
-                          Icon(Icons.arrow_drop_down,
-                              color: _resultColor, size: 28),
-                          Container(
-                            width: 22,
-                            height: 22,
-                            decoration: BoxDecoration(
-                              color: _resultColor,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 10),
-          const Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('10', style: TextStyle(color: Colors.grey)),
-              Text('18.5', style: TextStyle(color: Colors.grey)),
-              Text('25', style: TextStyle(color: Colors.grey)),
-              Text('30', style: TextStyle(color: Colors.grey)),
-              Text('40', style: TextStyle(color: Colors.grey)),
-            ],
+          const SizedBox(height: 8),
+          AspectRatio(
+            aspectRatio: 1.8,
+            child: CustomPaint(
+              painter: _SpeedometerPainter(
+                bmiValue: _meterValue,
+                needleColor:
+                    _bmi == null ? Colors.grey.shade400 : _resultColor,
+                hasResult: _bmi != null,
+                categoryLabel: _bmi == null ? '' : _message,
+              ),
+            ),
           ),
           const SizedBox(height: 12),
           Wrap(
@@ -301,18 +253,6 @@ class _BMICalculatorPageState extends State<BMICalculatorPage> {
             ],
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _meterSegment({required Color color}) {
-    return Expanded(
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 1),
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(8),
-        ),
       ),
     );
   }
@@ -334,4 +274,192 @@ class _BMICalculatorPageState extends State<BMICalculatorPage> {
       ],
     );
   }
+}
+
+// ---------------------------------------------------------------------------
+// Speedometer gauge painter
+// ---------------------------------------------------------------------------
+
+class _SpeedometerPainter extends CustomPainter {
+  final double bmiValue;
+  final Color needleColor;
+  final bool hasResult;
+  final String categoryLabel;
+
+  const _SpeedometerPainter({
+    required this.bmiValue,
+    required this.needleColor,
+    required this.hasResult,
+    required this.categoryLabel,
+  });
+
+  static const double _minBmi = 10;
+  static const double _maxBmi = 40;
+
+  // Maps a BMI value to a canvas angle.
+  // BMI 10 → π  (left,  9-o'clock)
+  // BMI 25 → 3π/2 (top, 12-o'clock)
+  // BMI 40 → 2π (right,  3-o'clock)
+  double _bmiToAngle(double bmi) {
+    final t = (bmi - _minBmi) / (_maxBmi - _minBmi);
+    return math.pi + t * math.pi; // π … 2π (clockwise through top)
+  }
+
+  void _drawArcSegment(
+    Canvas canvas,
+    Offset center,
+    double radius,
+    double strokeWidth,
+    Color color,
+    double startBmi,
+    double endBmi,
+  ) {
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      _bmiToAngle(startBmi),
+      _bmiToAngle(endBmi) - _bmiToAngle(startBmi),
+      false,
+      Paint()
+        ..color = color
+        ..strokeWidth = strokeWidth
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.butt,
+    );
+  }
+
+  void _paintText(
+    Canvas canvas,
+    String text,
+    Offset center,
+    TextStyle style,
+  ) {
+    final tp = TextPainter(
+      text: TextSpan(text: text, style: style),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    tp.paint(canvas, center - Offset(tp.width / 2, tp.height / 2));
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final cx = size.width / 2;
+    final cy = size.height;
+    final center = Offset(cx, cy);
+
+    // Arc radius: leave some margin so nothing clips at the edges
+    final maxR = math.min(cx * 0.88, cy * 0.92);
+    const strokeWidth = 22.0;
+    final arcR = maxR - strokeWidth / 2;
+
+    // --- Background (full half-circle) ---
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: arcR),
+      math.pi,
+      math.pi,
+      false,
+      Paint()
+        ..color = Colors.grey.shade200
+        ..strokeWidth = strokeWidth
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.butt,
+    );
+
+    // --- Coloured segments ---
+    _drawArcSegment(canvas, center, arcR, strokeWidth,
+        Colors.orange.shade300, 10, 18.5);
+    _drawArcSegment(canvas, center, arcR, strokeWidth,
+        Colors.green.shade400, 18.5, 25);
+    _drawArcSegment(canvas, center, arcR, strokeWidth,
+        Colors.deepOrange.shade300, 25, 30);
+    _drawArcSegment(
+        canvas, center, arcR, strokeWidth, Colors.red.shade400, 30, 40);
+
+    // --- Tick marks at category boundaries ---
+    final tickPaint = Paint()
+      ..color = Colors.white
+      ..strokeWidth = 2
+      ..style = PaintingStyle.stroke;
+    for (final bmi in [18.5, 25.0, 30.0]) {
+      final angle = _bmiToAngle(bmi);
+      final inner = Offset(
+        cx + (arcR - strokeWidth * 0.6) * math.cos(angle),
+        cy + (arcR - strokeWidth * 0.6) * math.sin(angle),
+      );
+      final outer = Offset(
+        cx + (arcR + strokeWidth * 0.6) * math.cos(angle),
+        cy + (arcR + strokeWidth * 0.6) * math.sin(angle),
+      );
+      canvas.drawLine(inner, outer, tickPaint);
+    }
+
+    // --- Needle ---
+    final angle = _bmiToAngle(bmiValue.clamp(_minBmi, _maxBmi));
+    final needleTip = Offset(
+      cx + (arcR - strokeWidth * 0.35) * math.cos(angle),
+      cy + (arcR - strokeWidth * 0.35) * math.sin(angle),
+    );
+
+    // Drop-shadow
+    canvas.drawLine(
+      center,
+      needleTip,
+      Paint()
+        ..color = Colors.black26
+        ..strokeWidth = 5
+        ..strokeCap = StrokeCap.round,
+    );
+    // Needle
+    canvas.drawLine(
+      center,
+      needleTip,
+      Paint()
+        ..color = needleColor
+        ..strokeWidth = 2.5
+        ..strokeCap = StrokeCap.round,
+    );
+
+    // Pivot circle
+    canvas.drawCircle(center, 11,
+        Paint()..color = Colors.white..style = PaintingStyle.fill);
+    canvas.drawCircle(
+        center,
+        11,
+        Paint()
+          ..color = needleColor
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2);
+    canvas.drawCircle(center, 5, Paint()..color = needleColor);
+
+    // --- Text inside the dial ---
+    final bmiText = hasResult ? bmiValue.toStringAsFixed(1) : '--';
+    _paintText(
+      canvas,
+      bmiText,
+      Offset(cx, cy - arcR * 0.42),
+      TextStyle(
+        color: needleColor,
+        fontSize: 22,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+    if (categoryLabel.isNotEmpty) {
+      _paintText(
+        canvas,
+        categoryLabel,
+        Offset(cx, cy - arcR * 0.22),
+        TextStyle(
+          color: needleColor,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_SpeedometerPainter old) =>
+      old.bmiValue != bmiValue ||
+      old.needleColor != needleColor ||
+      old.hasResult != hasResult ||
+      old.categoryLabel != categoryLabel;
 }
