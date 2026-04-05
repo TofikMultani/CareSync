@@ -6,6 +6,7 @@ import 'package:healthcare_system/screens/patient/patient_profile_page.dart';
 import 'package:healthcare_system/app_drawer.dart';
 import 'package:healthcare_system/screens/patient/support_page.dart';
 import 'package:healthcare_system/screens/patient/upload_report_page.dart';
+import 'package:healthcare_system/screens/patient/bmi_calculator_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -244,6 +245,39 @@ class _HomePageState extends State<HomePage> {
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: Colors.teal,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // 🩺 BMI Calculator Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const BmiCalculatorPage(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.speed, color: Colors.white),
+                      label: const Text(
+                        "BMI Calculator",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
                         ),
                       ),
                     ),
