@@ -6,6 +6,7 @@ import 'package:healthcare_system/screens/patient/patient_profile_page.dart';
 import 'package:healthcare_system/app_drawer.dart';
 import 'package:healthcare_system/screens/patient/support_page.dart';
 import 'package:healthcare_system/screens/patient/upload_report_page.dart';
+import 'package:healthcare_system/screens/patient/bmi_calculator_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -217,6 +218,26 @@ class _HomePageState extends State<HomePage> {
                   ),
 
                   const SizedBox(height: 12),
+
+                  Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.monitor_weight_outlined,
+                          color: Colors.teal),
+                      title: const Text("BMI Calculator"),
+                      subtitle: const Text("Check body mass index instantly"),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const BMICalculatorPage(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
 
                   // 📎 Upload Reports Button
                   SizedBox(

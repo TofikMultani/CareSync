@@ -4,6 +4,7 @@ import 'package:healthcare_system/login_page.dart';
 import 'package:healthcare_system/screens/patient/appointment_page.dart';
 import 'package:healthcare_system/screens/patient/report_page.dart';
 import 'package:healthcare_system/screens/patient/prescription_page.dart';
+import 'package:healthcare_system/screens/patient/bmi_calculator_page.dart';
 // import 'package:healthcare_system/screens/patient/patient_profile_page.dart'; // ❌ Removed
 
 class AppDrawer extends StatelessWidget {
@@ -23,15 +24,17 @@ class AppDrawer extends StatelessWidget {
               child: Icon(Icons.person, color: Colors.teal, size: 32),
             ),
           ),
-
           _drawerItem(context, Icons.home, "Home", const HomePage()),
-          _drawerItem(context, Icons.calendar_month, "Appointments", const AppointmentPage()),
-          _drawerItem(context, Icons.receipt_long, "Reports", const ReportPage()),
-          _drawerItem(context, Icons.medication, "Prescriptions", const PrescriptionPage()),
-
+          _drawerItem(context, Icons.calendar_month, "Appointments",
+              const AppointmentPage()),
+          _drawerItem(
+              context, Icons.receipt_long, "Reports", const ReportPage()),
+          _drawerItem(context, Icons.medication, "Prescriptions",
+              const PrescriptionPage()),
+          _drawerItem(context, Icons.monitor_weight_outlined, "BMI Calculator",
+              const BMICalculatorPage()),
           const Spacer(),
           const Divider(),
-
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.red),
             title: const Text("Logout"),
