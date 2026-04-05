@@ -296,10 +296,11 @@ class _SpeedometerPainter extends CustomPainter {
   static const double _minBmi = 10;
   static const double _maxBmi = 40;
 
-  // Maps a BMI value to a canvas angle.
-  // BMI 10 → π  (left,  9-o'clock)
-  // BMI 25 → 3π/2 (top, 12-o'clock)
-  // BMI 40 → 2π (right,  3-o'clock)
+  // Maps a BMI value to a canvas angle (Flutter screen coords: y-axis points down).
+  // Angles increase clockwise on screen, so:
+  //   BMI 10 → π   = 9-o'clock (left)
+  //   BMI 25 → 3π/2 = 12-o'clock (top, because sin(3π/2)=-1 → y decreases upward)
+  //   BMI 40 → 2π  = 3-o'clock (right)
   double _bmiToAngle(double bmi) {
     final t = (bmi - _minBmi) / (_maxBmi - _minBmi);
     return math.pi + t * math.pi; // π … 2π (clockwise through top)
