@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "347771998006",
+    "project_id": "caresync-f2f4a",
+    "storage_bucket": "caresync-f2f4a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:347771998006:android:df0ac445da89f0af47ad97",
+        "android_client_info": {
+          "package_name": "com.example.healthcare_system"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDWcHoyymBgcTB4XQLNUGKy41gs8sKCXBA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
