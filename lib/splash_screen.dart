@@ -26,18 +26,24 @@ class _SplashScreenState extends State<SplashScreen> {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       try {
-        DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
         if (userDoc.exists) {
           String role = userDoc.get('role') ?? 'Patient';
           if (!mounted) return;
           if (role == "Admin") {
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AdminPage()));
+            Navigator.pushReplacement(
+                context, MaterialPageRoute(builder: (_) => const AdminPage()));
             return;
           } else if (role == "Doctor") {
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const DoctorPage()));
+            Navigator.pushReplacement(
+                context, MaterialPageRoute(builder: (_) => const DoctorPage()));
             return;
           } else {
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomePage()));
+            Navigator.pushReplacement(
+                context, MaterialPageRoute(builder: (_) => const HomePage()));
             return;
           }
         }
@@ -45,7 +51,7 @@ class _SplashScreenState extends State<SplashScreen> {
         // Fail silently, go to login
       }
     }
-    
+
     if (mounted) {
       Navigator.pushReplacement(
         context,

@@ -12,8 +12,8 @@ final FlutterLocalNotificationsPlugin notificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
 Future<void> requestNotificationPermission() async {
-  final androidPlugin = notificationsPlugin
-      .resolvePlatformSpecificImplementation<
+  final androidPlugin =
+      notificationsPlugin.resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin>();
 
   if (androidPlugin != null) {
