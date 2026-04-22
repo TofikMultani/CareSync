@@ -29,9 +29,9 @@ class SupportPage extends StatelessWidget {
           _supportCard(
             icon: Icons.email,
             title: "Email Support",
-            subtitle: "support@hospital.com",
+            subtitle: "careSync@healthcare.com",
             onTap: () async {
-              final Uri url = Uri.parse('mailto:support@hospital.com');
+              final Uri url = Uri.parse('mailto:careSync@healthcare.com');
               if (!await launchUrl(url)) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not launch email app.')));
