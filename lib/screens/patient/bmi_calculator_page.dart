@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import 'package:google_fonts/google_fonts.dart';
 
 class BmiCalculatorPage extends StatefulWidget {
   const BmiCalculatorPage({super.key});
@@ -14,6 +15,9 @@ class _BmiCalculatorPageState extends State<BmiCalculatorPage> {
 
   double? _bmi;
   String _category = '';
+
+  final Color primaryColor = const Color(0xFF059669);
+  final Color backgroundColor = const Color(0xFFF8FAFC);
 
   @override
   void dispose() {
@@ -31,9 +35,11 @@ class _BmiCalculatorPageState extends State<BmiCalculatorPage> {
         heightCm <= 0 ||
         weightKg <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter valid height and weight values.'),
-          backgroundColor: Colors.red,
+        SnackBar(
+          content: Text('Please enter valid height and weight values.', style: GoogleFonts.plusJakartaSans()),
+          backgroundColor: Colors.red.shade400,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
       return;
@@ -58,30 +64,34 @@ class _BmiCalculatorPageState extends State<BmiCalculatorPage> {
   Color _categoryColor() {
     switch (_category) {
       case 'Underweight':
-        return Colors.blue;
+        return Colors.blue.shade400;
       case 'Normal Weight':
-        return Colors.green;
+        return primaryColor;
       case 'Overweight':
-        return Colors.orange;
+        return Colors.orange.shade500;
       case 'Obese':
-        return Colors.red;
+        return Colors.red.shade500;
       default:
-        return Colors.teal;
+        return primaryColor;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'BMI Calculator',
-          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 22),
+          style: GoogleFonts.plusJakartaSans(
+            fontWeight: FontWeight.w700, 
+            fontSize: 18,
+            color: const Color(0xFF0F172A),
+          ),
         ),
-        backgroundColor: const Color(0xFF0E8A83),
+        backgroundColor: backgroundColor,
         elevation: 0,
-        foregroundColor: Colors.white,
+        foregroundColor: const Color(0xFF0F172A),
         centerTitle: true,
       ),
       body: Stack(
@@ -94,7 +104,7 @@ class _BmiCalculatorPageState extends State<BmiCalculatorPage> {
               width: 200,
               height: 200,
               decoration: BoxDecoration(
-                color: const Color(0xFF0E8A83).withOpacity(0.08),
+                color: primaryColor.withOpacity(0.05),
                 shape: BoxShape.circle,
               ),
             ),
@@ -106,30 +116,29 @@ class _BmiCalculatorPageState extends State<BmiCalculatorPage> {
               width: 180,
               height: 180,
               decoration: BoxDecoration(
-                color: const Color(0xFF0E8A83).withOpacity(0.05),
+                color: primaryColor.withOpacity(0.03),
                 shape: BoxShape.circle,
               ),
             ),
           ),
           SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Premium Header Banner
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(24),
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF0E8A83), Color(0xFF2CB6AD)],
+                    gradient: LinearGradient(
+                      colors: [primaryColor, const Color(0xFF10B981)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF0E8A83).withOpacity(0.25),
+                        color: primaryColor.withOpacity(0.25),
                         blurRadius: 24,
                         offset: const Offset(0, 12),
                       ),
@@ -139,8 +148,8 @@ class _BmiCalculatorPageState extends State<BmiCalculatorPage> {
                     children: [
                       // Icon with premium styling
                       Container(
-                        width: 90,
-                        height: 90,
+                        width: 80,
+                        height: 80,
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(20),
@@ -149,281 +158,107 @@ class _BmiCalculatorPageState extends State<BmiCalculatorPage> {
                             width: 2,
                           ),
                         ),
-                        child: Container(
-                          margin: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          padding: const EdgeInsets.all(6),
-                          child: Image.asset(
-                            'assets/images/hospital_logo.png',
-                            fit: BoxFit.contain,
-                          ),
-                        ),
+                        child: const Icon(Icons.monitor_weight_rounded, color: Colors.white, size: 40),
                       ),
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 20),
                       // Title
-                      const Text(
+                      Text(
                         'BMI Health Scanner',
-                        style: TextStyle(
+                        style: GoogleFonts.plusJakartaSans(
                           color: Colors.white,
-                          fontSize: 28,
+                          fontSize: 24,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 0.4,
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 8),
                       // Subtitle
-                      const Text(
+                      Text(
                         'Calculate your Body Mass Index in seconds',
-                        style: TextStyle(
-                          color: Colors.white,
+                        style: GoogleFonts.plusJakartaSans(
+                          color: Colors.white.withOpacity(0.9),
                           fontSize: 14,
                           fontWeight: FontWeight.w400,
                           letterSpacing: 0.2,
-                          height: 1.5,
                         ),
                         textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 20),
-                      // Feature badges
-                      Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
-                        alignment: WrapAlignment.center,
-                        children: [
-                          _buildFeatureBadge('⚡', 'Instant Result'),
-                          _buildFeatureBadge('📊', 'Health Insights'),
-                        ],
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
 
                 // Input Section
+                Text(
+                  'Enter Your Details',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF0F172A),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                
                 Container(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(18),
+                    borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.06),
-                        blurRadius: 16,
+                        color: Colors.black.withOpacity(0.03),
+                        blurRadius: 20,
                         offset: const Offset(0, 4),
                       ),
                     ],
+                    border: Border.all(color: Colors.grey.shade100),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Enter Your Details',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF0D6E68),
-                        ),
+                      // Height Input
+                      _inputField(
+                        label: 'Height',
+                        controller: _heightController,
+                        hint: 'e.g., 170',
+                        suffix: 'cm',
+                        icon: Icons.height_rounded,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Use centimeters (cm) and kilograms (kg)',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey.shade600,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
+                      
+                      const SizedBox(height: 24),
 
-                      // Height Input with Slider
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'Height',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF0D6E68),
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color:
-                                      const Color(0xFF0E8A83).withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  '${_heightController.text.isEmpty ? "0" : _heightController.text} cm',
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                    color: Color(0xFF0E8A83),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          TextField(
-                            controller: _heightController,
-                            keyboardType: const TextInputType.numberWithOptions(
-                                decimal: true),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
-                            ),
-                            decoration: InputDecoration(
-                              hintText: 'e.g., 170',
-                              prefixIcon: const Icon(Icons.height,
-                                  color: Color(0xFF0E8A83), size: 20),
-                              suffixText: 'cm',
-                              filled: true,
-                              fillColor: const Color(0xFFEFF8F7),
-                              contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 14),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFF0E8A83),
-                                  width: 2,
-                                ),
-                              ),
-                            ),
-                            onChanged: (value) {
-                              setState(() {});
-                            },
-                          ),
-                        ],
+                      // Weight Input
+                      _inputField(
+                        label: 'Weight',
+                        controller: _weightController,
+                        hint: 'e.g., 70',
+                        suffix: 'kg',
+                        icon: Icons.monitor_weight_outlined,
                       ),
-                      const SizedBox(height: 18),
 
-                      // Weight Input with Visual Indicator
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'Weight',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF0D6E68),
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color:
-                                      const Color(0xFF0E8A83).withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  '${_weightController.text.isEmpty ? "0" : _weightController.text} kg',
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                    color: Color(0xFF0E8A83),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          TextField(
-                            controller: _weightController,
-                            keyboardType: const TextInputType.numberWithOptions(
-                                decimal: true),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
-                            ),
-                            decoration: InputDecoration(
-                              hintText: 'e.g., 70',
-                              prefixIcon: const Icon(Icons.line_weight_outlined,
-                                  color: Color(0xFF0E8A83), size: 20),
-                              suffixText: 'kg',
-                              filled: true,
-                              fillColor: const Color(0xFFEFF8F7),
-                              contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 14),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFF0E8A83),
-                                  width: 2,
-                                ),
-                              ),
-                            ),
-                            onChanged: (value) {
-                              setState(() {});
-                            },
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 22),
+                      const SizedBox(height: 32),
 
                       // Calculate Button
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14),
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF0E8A83), Color(0xFF39BFB7)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF0E8A83).withOpacity(0.3),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primaryColor,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
                             ),
-                          ],
-                        ),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: _calculateBmi,
-                            borderRadius: BorderRadius.circular(14),
-                            child: const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 16),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.calculate,
-                                      color: Colors.white, size: 22),
-                                  SizedBox(width: 10),
-                                  Text(
-                                    'Calculate BMI',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.white,
-                                      letterSpacing: 0.3,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                            elevation: 0,
+                          ),
+                          onPressed: _calculateBmi,
+                          child: Text(
+                            'Calculate BMI',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              letterSpacing: 0.3,
                             ),
                           ),
                         ),
@@ -437,19 +272,19 @@ class _BmiCalculatorPageState extends State<BmiCalculatorPage> {
                 if (_bmi != null)
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 400),
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(32),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(24),
                       border: Border.all(
                         color: _categoryColor().withOpacity(0.3),
                         width: 2,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: _categoryColor().withOpacity(0.15),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
+                          color: _categoryColor().withOpacity(0.1),
+                          blurRadius: 30,
+                          offset: const Offset(0, 10),
                         ),
                       ],
                     ),
@@ -459,51 +294,49 @@ class _BmiCalculatorPageState extends State<BmiCalculatorPage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.emoji_events_outlined,
-                                color: _categoryColor(), size: 24),
-                            const SizedBox(width: 10),
+                            Icon(Icons.monitor_heart_rounded, color: _categoryColor(), size: 28),
+                            const SizedBox(width: 12),
                             Text(
                               'Your BMI Result',
-                              style: TextStyle(
+                              style: GoogleFonts.plusJakartaSans(
                                 fontSize: 20,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.bold,
                                 color: _categoryColor(),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 32),
 
                         // BMI Gauge
                         SizedBox(
-                          height: 220,
+                          height: 200,
                           child: TweenAnimationBuilder<double>(
                             tween: Tween<double>(begin: 10, end: _bmi),
                             duration: const Duration(milliseconds: 1000),
                             curve: Curves.easeOutCubic,
                             builder: (context, animatedBmi, child) {
                               return CustomPaint(
-                                painter: _BmiGaugePainter(animatedBmi),
+                                painter: _BmiGaugePainter(animatedBmi, primaryColor),
                                 child: Center(
                                   child: Padding(
-                                    padding: const EdgeInsets.only(top: 70),
+                                    padding: const EdgeInsets.only(top: 60),
                                     child: Column(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Text(
                                           _bmi!.toStringAsFixed(1),
-                                          style: TextStyle(
-                                            fontSize: 48,
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 56,
                                             fontWeight: FontWeight.w900,
                                             color: _categoryColor(),
-                                            letterSpacing: -1,
+                                            letterSpacing: -2,
                                           ),
                                         ),
-                                        const SizedBox(height: 4),
-                                        const Text(
+                                        Text(
                                           'BMI Score',
-                                          style: TextStyle(
-                                            color: Colors.black54,
+                                          style: GoogleFonts.plusJakartaSans(
+                                            color: Colors.grey.shade500,
                                             fontWeight: FontWeight.w600,
                                             fontSize: 14,
                                           ),
@@ -516,80 +349,62 @@ class _BmiCalculatorPageState extends State<BmiCalculatorPage> {
                             },
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Range: 10 - 40',
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(height: 18),
+                        
+                        const SizedBox(height: 32),
 
                         // Category Chip
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                           decoration: BoxDecoration(
                             color: _categoryColor().withOpacity(0.1),
                             borderRadius: BorderRadius.circular(30),
-                            border: Border.all(
-                              color: _categoryColor().withOpacity(0.3),
-                              width: 1.5,
-                            ),
                           ),
                           child: Text(
                             _category.toUpperCase(),
-                            style: TextStyle(
+                            style: GoogleFonts.plusJakartaSans(
                               color: _categoryColor(),
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14,
-                              letterSpacing: 0.5,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 16,
+                              letterSpacing: 1,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 32),
 
                         // BMI Categories Legend
                         Container(
-                          padding: const EdgeInsets.all(14),
+                          padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade50,
-                            borderRadius: BorderRadius.circular(12),
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.grey.shade100),
                           ),
                           child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
+                              Text(
                                 'BMI Categories',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF0D6E68),
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFF0F172A),
                                 ),
                               ),
-                              const SizedBox(height: 12),
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                alignment: WrapAlignment.center,
-                                children: [
-                                  _categoryBadge(
-                                      'Underweight', Colors.blue, '< 18.5'),
-                                  _categoryBadge(
-                                      'Normal', Colors.green, '18.5 - 24.9'),
-                                  _categoryBadge(
-                                      'Overweight', Colors.orange, '25 - 29.9'),
-                                  _categoryBadge('Obese', Colors.red, '≥ 30'),
-                                ],
-                              ),
+                              const SizedBox(height: 16),
+                              _categoryLegendRow('Underweight', '< 18.5', Colors.blue.shade400),
+                              const SizedBox(height: 8),
+                              _categoryLegendRow('Normal', '18.5 - 24.9', primaryColor),
+                              const SizedBox(height: 8),
+                              _categoryLegendRow('Overweight', '25 - 29.9', Colors.orange.shade500),
+                              const SizedBox(height: 8),
+                              _categoryLegendRow('Obese', '≥ 30', Colors.red.shade500),
                             ],
                           ),
                         ),
                       ],
                     ),
                   ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 40),
               ],
             ),
           ),
@@ -598,73 +413,112 @@ class _BmiCalculatorPageState extends State<BmiCalculatorPage> {
     );
   }
 
-  Widget _buildFeatureBadge(String emoji, String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.18),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.3),
-          width: 1,
+  Widget _inputField({required String label, required TextEditingController controller, required String hint, required String suffix, required IconData icon}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF0F172A),
+              ),
+            ),
+            if (controller.text.isNotEmpty)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: primaryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  '${controller.text} $suffix',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: primaryColor,
+                  ),
+                ),
+              ),
+          ],
         ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(emoji, style: const TextStyle(fontSize: 16)),
-          const SizedBox(width: 6),
-          Text(
-            text,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.2,
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          style: GoogleFonts.plusJakartaSans(
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+            color: const Color(0xFF0F172A),
+          ),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: GoogleFonts.plusJakartaSans(color: Colors.grey.shade400),
+            prefixIcon: Icon(icon, color: Colors.grey.shade400, size: 22),
+            suffixText: suffix,
+            suffixStyle: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, color: Colors.grey.shade600),
+            filled: true,
+            fillColor: const Color(0xFFF1F5F9), // Slate 100
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: primaryColor, width: 2),
             ),
           ),
-        ],
-      ),
+          onChanged: (value) => setState(() {}),
+        ),
+      ],
     );
   }
 
-  Widget _categoryBadge(String label, Color color, String range) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withOpacity(0.3), width: 1),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
+  Widget _categoryLegendRow(String label, String range, Color color) {
+    return Row(
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
             label,
-            style: TextStyle(
-              fontSize: 11,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: color,
+              color: const Color(0xFF0F172A),
             ),
           ),
-          Text(
-            range,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w500,
-              color: color.withOpacity(0.7),
-            ),
+        ),
+        Text(
+          range,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey.shade600,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
 
 class _BmiGaugePainter extends CustomPainter {
-  _BmiGaugePainter(this.bmi);
+  _BmiGaugePainter(this.bmi, this.primaryColor);
 
   final double bmi;
+  final Color primaryColor;
 
   static const double _min = 10;
   static const double _max = 40;
@@ -672,7 +526,7 @@ class _BmiGaugePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final Offset center = Offset(size.width / 2, size.height - 20);
-    final double radius = math.min(size.width * 0.4, 120);
+    final double radius = math.min(size.width * 0.45, 140);
     const double startAngle = math.pi;
     const double sweepAngle = math.pi;
 
@@ -680,93 +534,31 @@ class _BmiGaugePainter extends CustomPainter {
 
     final Paint trackPaint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 20
+      ..strokeWidth = 24
       ..strokeCap = StrokeCap.round;
 
-    _drawSegment(
-      canvas,
-      arcRect,
-      trackPaint,
-      startAngle,
-      sweepAngle,
-      10,
-      18.5,
-      Colors.blue,
-    );
-    _drawSegment(
-      canvas,
-      arcRect,
-      trackPaint,
-      startAngle,
-      sweepAngle,
-      18.5,
-      25,
-      Colors.green,
-    );
-    _drawSegment(
-      canvas,
-      arcRect,
-      trackPaint,
-      startAngle,
-      sweepAngle,
-      25,
-      30,
-      Colors.orange,
-    );
-    _drawSegment(
-      canvas,
-      arcRect,
-      trackPaint,
-      startAngle,
-      sweepAngle,
-      30,
-      40,
-      Colors.red,
-    );
-
-    final TextPainter minLabel = TextPainter(
-      text: const TextSpan(
-        text: '10',
-        style: TextStyle(
-            color: Colors.black54, fontSize: 12, fontWeight: FontWeight.w600),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    minLabel.paint(
-      canvas,
-      Offset(center.dx - radius - 10, center.dy - 4),
-    );
-
-    final TextPainter maxLabel = TextPainter(
-      text: const TextSpan(
-        text: '40',
-        style: TextStyle(
-            color: Colors.black54, fontSize: 12, fontWeight: FontWeight.w600),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    maxLabel.paint(
-      canvas,
-      Offset(center.dx + radius - 4, center.dy - 4),
-    );
+    _drawSegment(canvas, arcRect, trackPaint, startAngle, sweepAngle, 10, 18.5, Colors.blue.shade400);
+    _drawSegment(canvas, arcRect, trackPaint, startAngle, sweepAngle, 18.5, 25, primaryColor);
+    _drawSegment(canvas, arcRect, trackPaint, startAngle, sweepAngle, 25, 30, Colors.orange.shade500);
+    _drawSegment(canvas, arcRect, trackPaint, startAngle, sweepAngle, 30, 40, Colors.red.shade500);
 
     final double clamped = bmi.clamp(_min, _max);
     final double normalized = (clamped - _min) / (_max - _min);
     final double needleAngle = startAngle + (normalized * sweepAngle);
 
     final Offset needleTip = Offset(
-      center.dx + (radius - 6) * math.cos(needleAngle),
-      center.dy + (radius - 6) * math.sin(needleAngle),
+      center.dx + (radius - 12) * math.cos(needleAngle),
+      center.dy + (radius - 12) * math.sin(needleAngle),
     );
 
     final Paint needlePaint = Paint()
-      ..color = Colors.black87
+      ..color = const Color(0xFF0F172A)
       ..strokeWidth = 4
       ..strokeCap = StrokeCap.round;
 
     canvas.drawLine(center, needleTip, needlePaint);
-    canvas.drawCircle(center, 9, Paint()..color = Colors.black87);
-    canvas.drawCircle(center, 5, Paint()..color = Colors.white);
+    canvas.drawCircle(center, 12, Paint()..color = const Color(0xFF0F172A));
+    canvas.drawCircle(center, 6, Paint()..color = Colors.white);
   }
 
   void _drawSegment(

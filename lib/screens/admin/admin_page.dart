@@ -9,6 +9,7 @@ import 'package:healthcare_system/screens/admin/admin_reports_page.dart';
 import 'package:healthcare_system/screens/admin/admin_settings_page.dart';
 import 'package:healthcare_system/screens/admin/approve_requests_page.dart';
 import 'package:healthcare_system/screens/admin/support_chat_list_page.dart';
+import 'package:healthcare_system/screens/change_password_page.dart';
 
 class AdminPage extends StatefulWidget {
   const AdminPage({super.key});
@@ -214,6 +215,12 @@ class _AdminPageState extends State<AdminPage> {
                         title: "Support Chats",
                         page: const SupportChatListPage(),
                         onReturn: _fetchStats,
+                      ),
+                      _AdminActionTile(
+                        icon: Icons.security,
+                        title: "Change Password",
+                        page: const ChangePasswordPage(),
+                        onReturn: () {},
                       ),
                     ],
                   ),

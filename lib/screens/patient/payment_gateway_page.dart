@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class PaymentGatewayPage extends StatefulWidget {
   final double amount;
@@ -18,6 +19,9 @@ class PaymentGatewayPage extends StatefulWidget {
 
 class _PaymentGatewayPageState extends State<PaymentGatewayPage> {
   late Razorpay _razorpay;
+
+  final Color primaryColor = const Color(0xFF059669);
+  final Color backgroundColor = const Color(0xFFF8FAFC);
 
   @override
   void initState() {
@@ -40,20 +44,29 @@ class _PaymentGatewayPageState extends State<PaymentGatewayPage> {
         context: context,
         barrierDismissible: false,
         builder: (_) => AlertDialog(
-          title: const Row(children: [
-            Icon(Icons.check_circle, color: Colors.green, size: 30),
-            SizedBox(width: 10),
-            Text("Payment Successful")
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(children: [
+            const Icon(Icons.check_circle_rounded, color: Color(0xFF059669), size: 30),
+            const SizedBox(width: 10),
+            Text("Payment Successful", style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 18))
           ]),
-          content: Text("Your payment of \$${widget.amount.toStringAsFixed(2)} for ${widget.title} has been processed successfully via Razorpay.\n\nPayment ID: ${response.paymentId}"),
+          content: Text(
+            "Your payment of \$${widget.amount.toStringAsFixed(2)} for ${widget.title} has been processed successfully via Razorpay.\n\nPayment ID: ${response.paymentId}",
+            style: GoogleFonts.plusJakartaSans(fontSize: 14, color: Colors.grey.shade700),
+          ),
           actions: [
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryColor,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
               onPressed: () {
                 Navigator.pop(context); // Close dialog
                 Navigator.pop(context, true); // Return true indicating success strictly expected by callers
               },
-              child: const Text("Continue"),
+              child: Text("Continue", style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold)),
             )
           ],
         ),
@@ -65,8 +78,10 @@ class _PaymentGatewayPageState extends State<PaymentGatewayPage> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Payment failed: ${response.message ?? 'Unknown Error'}"),
-          backgroundColor: Colors.red,
+          content: Text("Payment failed: ${response.message ?? 'Unknown Error'}", style: GoogleFonts.plusJakartaSans()),
+          backgroundColor: Colors.red.shade400,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
     }
@@ -75,7 +90,11 @@ class _PaymentGatewayPageState extends State<PaymentGatewayPage> {
   void _handleExternalWallet(ExternalWalletResponse response) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("External wallet selected: ${response.walletName}")),
+        SnackBar(
+          content: Text("External wallet selected: ${response.walletName}", style: GoogleFonts.plusJakartaSans()),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
       );
     }
   }
@@ -95,7 +114,7 @@ class _PaymentGatewayPageState extends State<PaymentGatewayPage> {
         'email': 'patient@caresync.com',
       },
       'theme': {
-        'color': '#009688' // Matches Colors.teal
+        'color': '#059669' // Matches primaryColor
       }
     };
 
@@ -109,106 +128,136 @@ class _PaymentGatewayPageState extends State<PaymentGatewayPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: const Text("Razorpay Secure Gateway"),
-        backgroundColor: Colors.teal,
+        title: Text("Secure Payment", style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 18, color: const Color(0xFF0F172A))),
+        backgroundColor: backgroundColor,
         elevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: Color(0xFF0F172A)),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.security, color: Colors.blueAccent.shade700, size: 30),
-                const SizedBox(width: 8),
-                const Text("Razorpay Checkout", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              ],
-            ),
-            const SizedBox(height: 30),
-
             // Amount summary
             Container(
-              padding: const EdgeInsets.all(24),
+              width: double.infinity,
+              padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 4))],
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: Colors.grey.shade200),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))
+                ],
               ),
               child: Column(
                 children: [
-                   const Icon(Icons.account_balance_wallet, size: 50, color: Colors.teal),
-                   const SizedBox(height: 16),
-                  Text(widget.title, style: const TextStyle(fontSize: 16, color: Colors.grey)),
+                   Container(
+                     padding: const EdgeInsets.all(16),
+                     decoration: BoxDecoration(
+                       color: primaryColor.withOpacity(0.1),
+                       shape: BoxShape.circle,
+                     ),
+                     child: Icon(Icons.account_balance_wallet_rounded, size: 48, color: primaryColor),
+                   ),
+                   const SizedBox(height: 20),
+                  Text(widget.title, style: GoogleFonts.plusJakartaSans(fontSize: 16, color: Colors.grey.shade600, fontWeight: FontWeight.w500)),
                   const SizedBox(height: 8),
-                  Text("\$${widget.amount.toStringAsFixed(2)}", style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Colors.black87)),
+                  Text("\$${widget.amount.toStringAsFixed(2)}", style: GoogleFonts.plusJakartaSans(fontSize: 40, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A))),
                 ],
               ),
             ),
             
-            const SizedBox(height: 40),
+            const SizedBox(height: 32),
+            
+            SizedBox(
+              width: double.infinity,
+              height: 60,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0F172A), // Slate 900
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 0,
+                ),
+                onPressed: _openRazorpay,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.security_rounded, size: 20),
+                    const SizedBox(width: 8),
+                    Text("Proceed to Pay", style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              "Clicking above will open the standard Razorpay checkout where you can choose Card, UPI Apps, Netbanking or Wallet.", 
+              textAlign: TextAlign.center,
+              style: GoogleFonts.plusJakartaSans(color: Colors.grey.shade500, fontSize: 13, height: 1.5)
+            ),
+            
+            const SizedBox(height: 32),
+            
+            Row(
+              children: [
+                Expanded(child: Divider(color: Colors.grey.shade300)),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Text("OR", style: GoogleFonts.plusJakartaSans(color: Colors.grey.shade500, fontWeight: FontWeight.w600, fontSize: 12)),
+                ),
+                Expanded(child: Divider(color: Colors.grey.shade300)),
+              ],
+            ),
+            
+            const SizedBox(height: 32),
+            
+            Text(
+              "Scan to Pay via UPI",
+              style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
+            ),
+            const SizedBox(height: 20),
+            
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: Colors.grey.shade200),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))
+                ],
+              ),
+              child: QrImageView(
+                data: 'upi://pay?pa=7990018718@ptsbi&pn=Hitanxi%20Vipulbhai%20Rank&am=${widget.amount}&cu=INR',
+                version: QrVersions.auto,
+                size: 200.0,
+                backgroundColor: Colors.white,
+              ),
+            ),
+            
+            const SizedBox(height: 20),
+            
+            Text(
+              "Use any UPI app (GPay, PhonePe, Paytm) to scan and pay.",
+              textAlign: TextAlign.center,
+              style: GoogleFonts.plusJakartaSans(color: Colors.grey.shade600, fontSize: 13, fontWeight: FontWeight.w500),
+            ),
+            
+            const SizedBox(height: 24),
             
             SizedBox(
               width: double.infinity,
               height: 55,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent.shade700,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                onPressed: _openRazorpay,
-                child: const Text("Proceed to Pay", style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
-              ),
-            ),
-            const SizedBox(height: 24),
-            const Center(
-              child: Text(
-                "Clicking above will open the standard Razorpay checkout where you can choose Card, UPI Apps, Netbanking or Wallet.", 
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey, fontSize: 13, height: 1.5)
-              ),
-            ),
-            const SizedBox(height: 30),
-            const Divider(height: 20, thickness: 1),
-            const SizedBox(height: 10),
-            const Text(
-              "Or Scan to Pay via UPI",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            Center(
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 4))],
-                ),
-                child: QrImageView(
-                  data: 'upi://pay?pa=7990018718@ptsbi&pn=Hitanxi%20Vipulbhai%20Rank&am=${widget.amount}&cu=INR',
-                  version: QrVersions.auto,
-                  size: 200.0,
-                  backgroundColor: Colors.white,
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              "Use any UPI app (GPay, PhonePe, Paytm) to scan and pay.",
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey, fontSize: 13),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
               child: OutlinedButton(
                 style: OutlinedButton.styleFrom(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  side: const BorderSide(color: Colors.teal, width: 1.5),
+                  foregroundColor: primaryColor,
+                  side: BorderSide(color: primaryColor, width: 1.5),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
                 onPressed: () {
                   // Verification for QR payment
@@ -218,20 +267,34 @@ class _PaymentGatewayPageState extends State<PaymentGatewayPage> {
                     builder: (ctx) {
                       final TextEditingController utrController = TextEditingController();
                       return AlertDialog(
-                        title: const Text("Verify Payment"),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        title: Text("Verify Payment", style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, color: const Color(0xFF0F172A))),
                         content: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Text("Please enter the 12-digit UPI Reference Number (UTR) to confirm your payment."),
-                            const SizedBox(height: 16),
+                            Text(
+                              "Please enter the 12-digit UPI Reference Number (UTR) to confirm your payment.",
+                              style: GoogleFonts.plusJakartaSans(color: Colors.grey.shade700, fontSize: 14),
+                            ),
+                            const SizedBox(height: 20),
                             TextField(
                               controller: utrController,
                               keyboardType: TextInputType.number,
                               maxLength: 12,
-                              decoration: const InputDecoration(
+                              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600, color: const Color(0xFF0F172A)),
+                              decoration: InputDecoration(
                                 labelText: "UTR Number",
-                                border: OutlineInputBorder(),
+                                labelStyle: GoogleFonts.plusJakartaSans(color: Colors.grey.shade500),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(color: Colors.grey.shade300),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(color: primaryColor, width: 2),
+                                ),
                                 counterText: "",
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                               ),
                             ),
                           ],
@@ -239,10 +302,14 @@ class _PaymentGatewayPageState extends State<PaymentGatewayPage> {
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(ctx),
-                            child: const Text("Cancel"),
+                            child: Text("Cancel", style: GoogleFonts.plusJakartaSans(color: Colors.grey.shade600, fontWeight: FontWeight.bold)),
                           ),
                           ElevatedButton(
-                            style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: primaryColor,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
                             onPressed: () {
                               if (utrController.text.length == 12) {
                                 Navigator.pop(ctx);
@@ -250,41 +317,61 @@ class _PaymentGatewayPageState extends State<PaymentGatewayPage> {
                                   context: context,
                                   barrierDismissible: false,
                                   builder: (_) => AlertDialog(
-                                    title: const Row(children: [
-                                      Icon(Icons.check_circle, color: Colors.green, size: 30),
-                                      SizedBox(width: 10),
-                                      Text("Payment Verified")
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                    title: Row(children: [
+                                      const Icon(Icons.check_circle_rounded, color: Color(0xFF059669), size: 30),
+                                      const SizedBox(width: 10),
+                                      Text("Payment Verified", style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 18))
                                     ]),
-                                    content: Text("Your UPI payment of \$${widget.amount.toStringAsFixed(2)}\nUTR: ${utrController.text}\nHas been successfully verified."),
+                                    content: Text(
+                                      "Your UPI payment of \$${widget.amount.toStringAsFixed(2)}\nUTR: ${utrController.text}\nHas been successfully verified.",
+                                      style: GoogleFonts.plusJakartaSans(fontSize: 14, color: Colors.grey.shade700),
+                                    ),
                                     actions: [
                                       ElevatedButton(
-                                        style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: primaryColor,
+                                          foregroundColor: Colors.white,
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                        ),
                                         onPressed: () {
                                           Navigator.pop(context); // Close success dialog
                                           Navigator.pop(context, true); // Return true to previous screen
                                         },
-                                        child: const Text("Continue"),
+                                        child: Text("Continue", style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold)),
                                       )
                                     ],
                                   ),
                                 );
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text("Please enter a valid 12-digit UTR Number"), backgroundColor: Colors.red),
+                                  SnackBar(
+                                    content: Text("Please enter a valid 12-digit UTR Number", style: GoogleFonts.plusJakartaSans()), 
+                                    backgroundColor: Colors.red.shade400,
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  ),
                                 );
                               }
                             },
-                            child: const Text("Verify"),
+                            child: Text("Verify", style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold)),
                           )
                         ],
                       );
                     },
                   );
                 },
-                child: const Text("I have paid via QR", style: TextStyle(fontSize: 16, color: Colors.teal, fontWeight: FontWeight.bold)),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.qr_code_scanner_rounded, size: 20),
+                    const SizedBox(width: 8),
+                    Text("I have paid via QR", style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold)),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 32),
           ],
         ),
       ),

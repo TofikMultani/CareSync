@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'dart:async';
 
 class PatientEditableProfilePage extends StatefulWidget {
   const PatientEditableProfilePage({super.key, this.showScaffold = true});
@@ -17,6 +19,9 @@ class _PatientEditableProfilePageState
   bool isEditing = false;
   bool _isLoading = true;
 
+  final Color primaryColor = const Color(0xFF059669);
+  final Color backgroundColor = const Color(0xFFF8FAFC);
+
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
@@ -29,6 +34,15 @@ class _PatientEditableProfilePageState
   final TextEditingController cityController = TextEditingController();
   final TextEditingController allergiesController = TextEditingController(text: "None");
   final TextEditingController chronicDiseaseController = TextEditingController(text: "None");
+
+  Timer? _debounce;
+
+  void _onFieldChanged(String value) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 1500), () {
+      _saveProfileData(silent: true);
+    });
+  }
 
   @override
   void initState() {
@@ -68,11 +82,11 @@ class _PatientEditableProfilePageState
     }
   }
 
-  Future<void> _saveProfileData() async {
+  Future<void> _saveProfileData({bool silent = false}) async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       try {
-        await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
           'fullName': nameController.text.trim(),
           'phone': phoneController.text.trim(),
           'age': ageController.text.trim(),
@@ -84,24 +98,28 @@ class _PatientEditableProfilePageState
           'city': cityController.text.trim(),
           'allergies': allergiesController.text.trim(),
           'chronicDisease': chronicDiseaseController.text.trim(),
-        });
-        if (mounted) {
+        }, SetOptions(merge: true));
+        if (mounted && !silent) {
           setState(() {
             isEditing = false;
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Profile updated successfully!"),
-              backgroundColor: Colors.green,
+            SnackBar(
+              content: Text("Profile updated successfully!", style: GoogleFonts.plusJakartaSans()),
+              backgroundColor: primaryColor,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
           );
         }
       } catch (e) {
-        if (mounted) {
+        if (mounted && !silent) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text("Error updating profile: $e"),
-              backgroundColor: Colors.red,
+              content: Text("Error updating profile: $e", style: GoogleFonts.plusJakartaSans()),
+              backgroundColor: Colors.red.shade400,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
           );
         }
@@ -112,14 +130,14 @@ class _PatientEditableProfilePageState
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        backgroundColor: Color(0xFFF5F7FA),
-        body: Center(child: CircularProgressIndicator(color: Colors.teal)),
+      return Scaffold(
+        backgroundColor: backgroundColor,
+        body: Center(child: CircularProgressIndicator(color: primaryColor)),
       );
     }
 
     final profileBody = SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       child: Column(
         children: [
           // Edit Button
@@ -127,59 +145,84 @@ class _PatientEditableProfilePageState
             Align(
               alignment: Alignment.centerRight,
               child: TextButton.icon(
+                style: TextButton.styleFrom(
+                  foregroundColor: isEditing ? Colors.red.shade400 : primaryColor,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
                 onPressed: () {
                   setState(() {
                     isEditing = !isEditing;
                   });
                 },
-                icon: Icon(isEditing ? Icons.close : Icons.edit),
-                label: Text(isEditing ? "Cancel" : "Edit Profile"),
+                icon: Icon(isEditing ? Icons.close_rounded : Icons.edit_rounded, size: 18),
+                label: Text(
+                  isEditing ? "Cancel" : "Edit Profile", 
+                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold),
+                ),
               ),
             ),
 
           // Profile Header
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Colors.teal, Colors.tealAccent],
+              gradient: LinearGradient(
+                colors: [primaryColor, const Color(0xFF10B981)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: primaryColor.withOpacity(0.3),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                )
+              ]
             ),
             child: Row(
               children: [
-                const CircleAvatar(
-                  radius: 35,
-                  backgroundColor: Colors.white,
-                  child: Icon(Icons.person, size: 40, color: Colors.teal),
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: CircleAvatar(
+                    radius: 36,
+                    backgroundColor: Colors.white,
+                    child: Icon(Icons.person_rounded, size: 40, color: primaryColor),
+                  ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 20),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         "My Profile",
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.white70,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white.withOpacity(0.8),
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        nameController.text,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                        nameController.text.isNotEmpty ? nameController.text : "Update Name",
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
                           color: Colors.white,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         emailController.text,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.white70,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white.withOpacity(0.9),
                         ),
                       ),
                     ],
@@ -189,122 +232,121 @@ class _PatientEditableProfilePageState
             ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 32),
 
           // Section: Basic Information
-          const Align(
+          Align(
             alignment: Alignment.centerLeft,
             child: Text(
               "Basic Information",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
             ),
           ),
-          const SizedBox(height: 12),
-
-          _buildField("Full Name", nameController, Icons.person, isEditing),
-          _buildField(
-              "Email (Cannot Change)", emailController, Icons.email, false,
-              isLocked: true),
-          _buildField("Phone Number", phoneController, Icons.phone, isEditing),
-          _buildField("Age", ageController, Icons.cake, isEditing,
-              isNumber: true),
-
           const SizedBox(height: 16),
 
+          _buildField("Full Name", nameController, Icons.person_rounded, isEditing),
+          _buildField("Email (Cannot Change)", emailController, Icons.email_rounded, false, isLocked: true),
+          _buildField("Phone Number", phoneController, Icons.phone_rounded, isEditing),
+          _buildField("Age", ageController, Icons.cake_rounded, isEditing, isNumber: true),
+
+          const SizedBox(height: 24),
+
           // Section: Health Information
-          const Align(
+          Align(
             alignment: Alignment.centerLeft,
             child: Text(
               "Health Information",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
             ),
           ),
-          const SizedBox(height: 12),
-
-          _buildField("Gender", genderController, Icons.wc, isEditing),
-          _buildField(
-              "Blood Group", bloodGroupController, Icons.bloodtype, isEditing),
-          _buildField("Height (cm)", heightController, Icons.height, isEditing,
-              isNumber: true),
-          _buildField(
-              "Weight (kg)", weightController, Icons.monitor_weight, isEditing,
-              isNumber: true),
-
           const SizedBox(height: 16),
 
+          _buildField("Gender", genderController, Icons.wc_rounded, isEditing),
+          _buildField("Blood Group", bloodGroupController, Icons.bloodtype_rounded, isEditing),
+          _buildField("Height (cm)", heightController, Icons.height_rounded, isEditing, isNumber: true),
+          _buildField("Weight (kg)", weightController, Icons.monitor_weight_rounded, isEditing, isNumber: true),
+
+          const SizedBox(height: 24),
+
           // Section: Address & Location
-          const Align(
+          Align(
             alignment: Alignment.centerLeft,
             child: Text(
               "Address & Location",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
             ),
           ),
-          const SizedBox(height: 12),
-
-          _buildField(
-              "Address", addressController, Icons.location_on, isEditing,
-              maxLines: 2),
-          _buildField("City", cityController, Icons.location_city, isEditing),
-
           const SizedBox(height: 16),
 
+          _buildField("Address", addressController, Icons.location_on_rounded, isEditing, maxLines: 2),
+          _buildField("City", cityController, Icons.location_city_rounded, isEditing),
+
+          const SizedBox(height: 24),
+
           // Section: Medical History
-          const Align(
+          Align(
             alignment: Alignment.centerLeft,
             child: Text(
               "Medical History",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
 
-          _buildField(
-              "Allergies", allergiesController, Icons.warning, isEditing,
-              maxLines: 2),
-          _buildField("Chronic Diseases", chronicDiseaseController,
-              Icons.favorite, isEditing,
-              maxLines: 2),
+          _buildField("Allergies", allergiesController, Icons.warning_rounded, isEditing, maxLines: 2),
+          _buildField("Chronic Diseases", chronicDiseaseController, Icons.favorite_rounded, isEditing, maxLines: 2),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 40),
 
           // Save Button
           if (isEditing)
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton.icon(
+              child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                  backgroundColor: const Color(0xFF0F172A), // Slate 900
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 0,
                 ),
-                onPressed: _saveProfileData,
-                icon: const Icon(Icons.save),
-                label: const Text("Save Changes"),
+                onPressed: () => _saveProfileData(),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.save_rounded, size: 20),
+                    const SizedBox(width: 8),
+                    Text("Save Changes", style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold)),
+                  ],
+                ),
               ),
             ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 32),
         ],
       ),
     );
 
     if (!widget.showScaffold) {
-      return Container(
-        color: const Color(0xFFF5F7FA),
-        child: profileBody,
+      return SafeArea(
+        child: Container(
+          color: backgroundColor,
+          child: profileBody,
+        ),
       );
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: const Text("My Profile"),
-        backgroundColor: Colors.teal,
+        title: Text("My Profile", style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 18, color: const Color(0xFF0F172A))),
+        backgroundColor: backgroundColor,
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: Color(0xFF0F172A)),
         actions: [
           IconButton(
-            icon: Icon(isEditing ? Icons.close : Icons.edit),
+            icon: Icon(isEditing ? Icons.close_rounded : Icons.edit_rounded, color: isEditing ? Colors.red.shade400 : primaryColor),
             onPressed: () {
               setState(() {
                 isEditing = !isEditing;
@@ -326,35 +368,61 @@ class _PatientEditableProfilePageState
     bool isNumber = false,
     int maxLines = 1,
   }) {
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: isEditable ? primaryColor.withOpacity(0.5) : Colors.grey.shade200, width: isEditable ? 1.5 : 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          )
+        ],
+      ),
       child: ListTile(
-        leading: Icon(icon, color: Colors.teal),
-        title: Text(label),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+        leading: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: primaryColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: primaryColor, size: 22),
+        ),
+        title: Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey.shade500)),
         subtitle: isEditable && !isLocked
             ? TextField(
                 controller: controller,
-                keyboardType:
-                    isNumber ? TextInputType.number : TextInputType.text,
+                keyboardType: isNumber ? TextInputType.number : TextInputType.text,
                 maxLines: maxLines,
+                onChanged: _onFieldChanged,
+                style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w600, color: const Color(0xFF0F172A)),
                 decoration: const InputDecoration(
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.zero,
+                  isDense: true,
                 ),
               )
-            : Text(
-                controller.text,
-                style: TextStyle(
-                  color: isLocked ? Colors.grey : Colors.black87,
+            : Padding(
+                padding: const EdgeInsets.only(top: 4.0),
+                child: Text(
+                  controller.text.isEmpty ? "Not set" : controller.text,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: isLocked ? Colors.grey.shade600 : const Color(0xFF0F172A),
+                  ),
                 ),
               ),
         trailing: isLocked
-            ? const Tooltip(
+            ? Tooltip(
                 message: "Email cannot be changed",
-                child: Icon(Icons.lock, color: Colors.orange, size: 20),
+                child: Icon(Icons.lock_rounded, color: Colors.orange.shade400, size: 20),
               )
-            : null,
+            : (isEditable ? Icon(Icons.edit_rounded, color: primaryColor, size: 16) : null),
       ),
     );
   }

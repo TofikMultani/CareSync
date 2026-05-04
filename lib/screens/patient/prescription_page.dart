@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:healthcare_system/screens/patient/prescription_details_page.dart';
 import 'package:intl/intl.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class PrescriptionPage extends StatefulWidget {
   const PrescriptionPage({super.key});
@@ -14,6 +15,9 @@ class PrescriptionPage extends StatefulWidget {
 class _PrescriptionPageState extends State<PrescriptionPage> {
   List<Map<String, dynamic>> prescriptions = [];
   bool isLoading = true;
+
+  final Color primaryColor = const Color(0xFF059669);
+  final Color backgroundColor = const Color(0xFFF8FAFC);
 
   @override
   void initState() {
@@ -55,17 +59,38 @@ class _PrescriptionPageState extends State<PrescriptionPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: const Text("My Prescriptions"),
-        backgroundColor: Colors.teal,
+        title: Text("My Prescriptions", style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 18, color: const Color(0xFF0F172A))),
+        backgroundColor: backgroundColor,
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: Color(0xFF0F172A)),
       ),
-      backgroundColor: const Color(0xFFF5F7FA),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator(color: primaryColor))
           : prescriptions.isEmpty
-              ? const Center(child: Text("No prescriptions found."))
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: primaryColor.withOpacity(0.05),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.receipt_long_rounded, size: 80, color: primaryColor.withOpacity(0.5)),
+                      ),
+                      const SizedBox(height: 24),
+                      Text("No Prescriptions Yet", style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A))),
+                      const SizedBox(height: 8),
+                      Text("Your prescriptions will be listed here.", style: GoogleFonts.plusJakartaSans(color: Colors.grey.shade500)),
+                    ],
+                  ),
+                )
               : ListView.builder(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
                   itemCount: prescriptions.length,
                   itemBuilder: (context, index) {
                     final data = prescriptions[index];
@@ -106,28 +131,100 @@ class _PrescriptionPageState extends State<PrescriptionPage> {
     required String date,
     required List<Map<String, String>> medicines,
   }) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        leading: const Icon(Icons.medication, color: Colors.teal),
-        title: Text("Doctor: $doctor"),
-        subtitle: Text("Date: $date"),
-        trailing: ElevatedButton(
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
-          child: const Text("View Details"),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => PrescriptionDetailsPage(
-                  doctor: doctor,
-                  date: date,
-                  medicines: medicines,
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          )
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: primaryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(Icons.medical_information_rounded, color: primaryColor, size: 24),
                 ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        doctor,
+                        style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(Icons.calendar_today_rounded, size: 12, color: Colors.grey.shade500),
+                          const SizedBox(width: 4),
+                          Text(
+                            date,
+                            style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.grey.shade500),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Icon(Icons.medication_liquid_rounded, size: 16, color: Colors.grey.shade600),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    "${medicines.length} Medicine(s) Prescribed",
+                    style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade700),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              height: 45,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  elevation: 0,
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => PrescriptionDetailsPage(
+                        doctor: doctor,
+                        date: date,
+                        medicines: medicines,
+                      ),
+                    ),
+                  );
+                },
+                child: Text("View Details", style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.bold)),
               ),
-            );
-          },
+            ),
+          ],
         ),
       ),
     );

@@ -8,6 +8,7 @@ import 'package:healthcare_system/screens/admin/approve_requests_page.dart';
 import 'package:healthcare_system/screens/doctor/doctor_appointments_page.dart';
 import 'package:healthcare_system/login_page.dart';
 import 'package:healthcare_system/notification_page.dart';
+import 'package:healthcare_system/screens/change_password_page.dart';
 
 class DoctorPage extends StatefulWidget {
   const DoctorPage({super.key});
@@ -294,6 +295,18 @@ class _DoctorPageState extends State<DoctorPage> {
                             MaterialPageRoute(
                               builder: (_) => const NotificationPage(),
                             ),
+                          );
+                        },
+                      ),
+                      _ActionCard(
+                        icon: Icons.security,
+                        title: "Change Password",
+                        color: Colors.blueGrey,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const ChangePasswordPage()),
                           );
                         },
                       ),

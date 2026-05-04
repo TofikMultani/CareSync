@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:healthcare_system/screens/doctor/doctor_prescriptions.dart';
+import 'package:google_fonts/google_fonts.dart';
 //import 'package:healthcare_system/screens/patient/upload_report_page.dart';
 
 
@@ -21,126 +22,172 @@ class PatientProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final Color primaryColor = const Color(0xFF059669);
+    final Color backgroundColor = const Color(0xFFF8FAFC);
+
     return Scaffold(
-      backgroundColor: const Color(0xfff5f7fa),
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: const Text("Patient Profile"),
+        title: Text("Patient Profile", style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 18, color: const Color(0xFF0F172A))),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.teal,
+        backgroundColor: backgroundColor,
+        iconTheme: const IconThemeData(color: Color(0xFF0F172A)),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // 🔷 Profile Header
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xff11998e), Color(0xff38ef7d)],
+                gradient: LinearGradient(
+                  colors: [primaryColor, const Color(0xFF10B981)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: primaryColor.withOpacity(0.3),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  )
+                ]
               ),
               child: Row(
                 children: [
-                  const CircleAvatar(
-                    radius: 34,
-                    backgroundColor: Colors.white,
-                    child: Icon(Icons.person, size: 36, color: Colors.teal),
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const CircleAvatar(
+                      radius: 36,
+                      backgroundColor: Colors.white,
+                      child: Icon(Icons.person_rounded, size: 40, color: Color(0xFF059669)),
+                    ),
                   ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        name,
-                        style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white),
-                      ),
-                      const SizedBox(height: 6),
-                      Text("Age: $age • City: $city",
-                          style: const TextStyle(color: Colors.white70)),
-                      Text("Mobile: $mobile",
-                          style: const TextStyle(color: Colors.white70)),
-                    ],
+                  const SizedBox(width: 20),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          name,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            const Icon(Icons.cake_rounded, color: Colors.white70, size: 14),
+                            const SizedBox(width: 4),
+                            Text("$age yrs", style: GoogleFonts.plusJakartaSans(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500)),
+                            const SizedBox(width: 12),
+                            const Icon(Icons.location_on_rounded, color: Colors.white70, size: 14),
+                            const SizedBox(width: 4),
+                            Expanded(child: Text(city, style: GoogleFonts.plusJakartaSans(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500), overflow: TextOverflow.ellipsis)),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            const Icon(Icons.phone_rounded, color: Colors.white70, size: 14),
+                            const SizedBox(width: 4),
+                            Text(mobile, style: GoogleFonts.plusJakartaSans(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500)),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
 
             // 🔹 Basic Information (Dashboard Style)
-            const Text(
+            Text(
               "Basic Information",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
 
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.grey.shade200),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 8,
+                    color: Colors.black.withOpacity(0.03),
+                    blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
                 ],
               ),
               child: Column(
-                children: const [
-                  _InfoRow(icon: Icons.cake, label: "Age", value: "29 Years"),
-                  _InfoRow(icon: Icons.male, label: "Gender", value: "Male"),
-                  _InfoRow(icon: Icons.bloodtype, label: "Blood Group", value: "O+"),
-                  _InfoRow(icon: Icons.monitor_weight, label: "Weight", value: "68 kg"),
-                  _InfoRow(icon: Icons.height, label: "Height", value: "170 cm"),
-                  _InfoRow(icon: Icons.event_available, label: "Last Visit", value: "12 Jan 2026"),
+                children: [
+                  _InfoRow(icon: Icons.cake_rounded, label: "Age", value: "$age Years"),
+                  const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                  const _InfoRow(icon: Icons.male_rounded, label: "Gender", value: "Male"),
+                  const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                  const _InfoRow(icon: Icons.bloodtype_rounded, label: "Blood Group", value: "O+"),
+                  const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                  const _InfoRow(icon: Icons.monitor_weight_rounded, label: "Weight", value: "68 kg"),
+                  const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                  const _InfoRow(icon: Icons.height_rounded, label: "Height", value: "170 cm"),
+                  const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                  const _InfoRow(icon: Icons.event_available_rounded, label: "Last Visit", value: "12 Jan 2026"),
                 ],
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
 
             // 🔹 Health Summary
-            const Text(
+            Text(
               "Health Summary",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
 
-            _SummaryCard(
+            const _SummaryCard(
               title: "Allergies",
               value: "No Known Allergies",
-              icon: Icons.warning_amber,
+              icon: Icons.warning_amber_rounded,
               color: Colors.orange,
             ),
-            _SummaryCard(
+            const _SummaryCard(
               title: "Chronic Condition",
               value: "Diabetes (Type 2)",
-              icon: Icons.favorite,
+              icon: Icons.favorite_rounded,
               color: Colors.pink,
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 40),
 
             if (!viewModeAdmin) ...[
               // 💊 Give Prescription Button
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton.icon(
+                child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    backgroundColor: const Color(0xFF0F172A), // Slate 900
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(16),
                     ),
+                    elevation: 0,
                   ),
                   onPressed: () {
                     Navigator.push(
@@ -150,14 +197,20 @@ class PatientProfilePage extends StatelessWidget {
                       ),
                     );
                   },
-                  icon: const Icon(Icons.medication),
-                  label: const Text(
-                    "Give Prescription",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.medication_rounded, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        "Give Prescription",
+                        style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                    ],
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 24),
             ],
           ],
         ),
@@ -182,22 +235,24 @@ class _InfoRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 16),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 18,
-            backgroundColor: Colors.teal.withOpacity(0.12),
-            child: Icon(icon, size: 18, color: Colors.teal),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xFF059669).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 18, color: const Color(0xFF059669)),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 16),
           Expanded(
-            child: Text(label,
-                style: const TextStyle(fontWeight: FontWeight.w600)),
+            child: Text(label, style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600, color: Colors.grey.shade600, fontSize: 14)),
           ),
           Text(
             value,
-            style: const TextStyle(color: Colors.black54),
+            style: GoogleFonts.plusJakartaSans(color: const Color(0xFF0F172A), fontWeight: FontWeight.w700, fontSize: 14),
           ),
         ],
       ),
@@ -220,18 +275,36 @@ class _SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.only(bottom: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          )
+        ],
+      ),
       child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: color.withOpacity(0.15),
-          child: Icon(icon, color: color),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        leading: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, color: color, size: 24),
         ),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-        subtitle: Text(value),
-        trailing: const Icon(Icons.chevron_right),
+        title: Text(title, style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 15, color: const Color(0xFF0F172A))),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(value, style: GoogleFonts.plusJakartaSans(color: Colors.grey.shade600, fontSize: 13, fontWeight: FontWeight.w500)),
+        ),
+        trailing: Icon(Icons.chevron_right_rounded, color: Colors.grey.shade400),
       ),
     );
   }

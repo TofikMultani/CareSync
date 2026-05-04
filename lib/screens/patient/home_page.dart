@@ -12,6 +12,9 @@ import 'package:healthcare_system/screens/patient/my_lab_tests_page.dart';
 import 'package:intl/intl.dart';
 import 'package:healthcare_system/notification_service.dart';
 import 'dart:async';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:health/health.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -24,6 +27,11 @@ class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
   String patientName = "Loading...";
 
+  String currentHeartRate = "--";
+  String currentSystolic = "--";
+  String currentDiastolic = "--";
+  String currentTemp = "--";
+
   List<Map<String, dynamic>> upcomingAppointments = [];
   Map<String, dynamic>? activePrescription;
   Map<String, dynamic>? recentReport;
@@ -31,10 +39,74 @@ class _HomePageState extends State<HomePage> {
   StreamSubscription<QuerySnapshot>? _prescriptionSubscription;
   bool _listenersSetup = false;
 
+  final Color primaryColor = const Color(0xFF059669);
+  final Color backgroundColor = const Color(0xFFF8FAFC);
+
   @override
   void initState() {
     super.initState();
     _fetchPatientData();
+    _fetchHealthData();
+  }
+
+  Future<void> _fetchHealthData() async {
+    Health().configure();
+    
+    final types = [
+      HealthDataType.HEART_RATE,
+      HealthDataType.BLOOD_PRESSURE_SYSTOLIC,
+      HealthDataType.BLOOD_PRESSURE_DIASTOLIC,
+      HealthDataType.BODY_TEMPERATURE,
+    ];
+
+    final permissions = [
+      HealthDataAccess.READ,
+      HealthDataAccess.READ,
+      HealthDataAccess.READ,
+      HealthDataAccess.READ,
+    ];
+
+    try {
+      await Permission.activityRecognition.request();
+      bool? hasPermissions = await Health().hasPermissions(types, permissions: permissions);
+      if (hasPermissions == false) {
+        bool requested = await Health().requestAuthorization(types, permissions: permissions);
+        if (!requested) return;
+      }
+
+      DateTime now = DateTime.now();
+      DateTime yesterday = now.subtract(const Duration(days: 30)); // Search last 30 days for data
+
+      List<HealthDataPoint> healthData = await Health().getHealthDataFromTypes(types: types, startTime: yesterday, endTime: now);
+
+      HealthDataPoint? latestHR;
+      HealthDataPoint? latestSys;
+      HealthDataPoint? latestDia;
+      HealthDataPoint? latestTemp;
+
+      for (var point in healthData) {
+        if (point.type == HealthDataType.HEART_RATE) {
+          if (latestHR == null || point.dateTo.isAfter(latestHR.dateTo)) latestHR = point;
+        } else if (point.type == HealthDataType.BLOOD_PRESSURE_SYSTOLIC) {
+          if (latestSys == null || point.dateTo.isAfter(latestSys.dateTo)) latestSys = point;
+        } else if (point.type == HealthDataType.BLOOD_PRESSURE_DIASTOLIC) {
+          if (latestDia == null || point.dateTo.isAfter(latestDia.dateTo)) latestDia = point;
+        } else if (point.type == HealthDataType.BODY_TEMPERATURE) {
+          if (latestTemp == null || point.dateTo.isAfter(latestTemp.dateTo)) latestTemp = point;
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          if (latestHR != null) currentHeartRate = double.tryParse(latestHR.value.toString())?.round().toString() ?? currentHeartRate;
+          if (latestSys != null) currentSystolic = double.tryParse(latestSys.value.toString())?.round().toString() ?? currentSystolic;
+          if (latestDia != null) currentDiastolic = double.tryParse(latestDia.value.toString())?.round().toString() ?? currentDiastolic;
+          if (latestTemp != null) currentTemp = double.tryParse(latestTemp.value.toString())?.toStringAsFixed(1) ?? currentTemp;
+        });
+      }
+    } catch (e) {
+      print("Health package error: $e");
+    }
   }
 
   Future<void> _fetchPatientData() async {
@@ -59,7 +131,6 @@ class _HomePageState extends State<HomePage> {
         try {
           final apptSnapshot = await FirebaseFirestore.instance.collection('appointments')
               .where('patientId', isEqualTo: user.uid)
-              // .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(today)) // Removed to avoid composite index error
               .get();
           if (apptSnapshot.docs.isNotEmpty) {
             var docs = apptSnapshot.docs.toList();
@@ -156,385 +227,541 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  String _appBarTitle() {
-    if (_currentIndex == 1) return "Support";
-    if (_currentIndex == 2) return "My Profile";
-    return patientName != "Loading..." && patientName != "Guest" ? "Hi, $patientName" : "Patient Dashboard";
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: const AppDrawer(),
-      backgroundColor: const Color(0xFFF5F7FA),
-      appBar: AppBar(
-        title: Text(_appBarTitle()),
-        backgroundColor: Colors.teal,
+      backgroundColor: backgroundColor,
+      appBar: _currentIndex == 0 ? AppBar(
+        backgroundColor: backgroundColor,
         elevation: 0,
-      ),
+        iconTheme: IconThemeData(color: primaryColor),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: CircleAvatar(
+              backgroundColor: primaryColor.withOpacity(0.1),
+              child: IconButton(
+                icon: Icon(Icons.notifications_outlined, color: primaryColor),
+                onPressed: () {},
+              ),
+            ),
+          )
+        ],
+      ) : null,
       body: _currentIndex == 1
           ? const SupportPage(showScaffold: false)
           : _currentIndex == 2
               ? const PatientEditableProfilePage(showScaffold: false)
               : isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          // Header
-                          Container(
-                            padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
-                            decoration: const BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [Colors.teal, Colors.tealAccent],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
+                  ? Center(child: CircularProgressIndicator(color: primaryColor))
+                  : RefreshIndicator(
+                      color: primaryColor,
+                      onRefresh: _fetchPatientData,
+                      child: SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Greeting Header
+                              Text(
+                                "Hello,",
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 16,
+                                  color: Colors.grey.shade600,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
-                              borderRadius: BorderRadius.only(
-                                bottomLeft: Radius.circular(24),
-                                bottomRight: Radius.circular(24),
+                              const SizedBox(height: 4),
+                              Text(
+                                patientName,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w800,
+                                  color: const Color(0xFF0F172A),
+                                  letterSpacing: -0.5,
+                                ),
                               ),
-                            ),
-                            child: Row(
-                              children: [
-                                const CircleAvatar(
-                                  radius: 28,
-                                  backgroundColor: Colors.white,
-                                  child: Icon(Icons.person,
-                                      size: 30, color: Colors.teal),
-                                ),
-                                const SizedBox(width: 12),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text("Welcome back,",
-                                        style: TextStyle(color: Colors.white70)),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      patientName,
-                                      style: const TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
+                              const SizedBox(height: 24),
 
-                          const SizedBox(height: 20),
-
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text("Today's Health Overview",
-                                    style: TextStyle(
-                                        fontSize: 18, fontWeight: FontWeight.bold)),
-                                const SizedBox(height: 12),
-
-                                Row(
-                                  children: [
-                                    _healthCard(
-                                        icon: Icons.favorite,
-                                        label: "Heart Rate",
-                                        value: "72 bpm",
-                                        color: Colors.red),
-                                    const SizedBox(width: 12),
-                                    _healthCard(
-                                        icon: Icons.bloodtype,
-                                        label: "Blood Pressure",
-                                        value: "120 / 80",
-                                        color: Colors.redAccent),
-                                  ],
-                                ),
-
-                                const SizedBox(height: 16),
-
-                                Row(
-                                  children: [
-                                    _healthCard(
-                                        icon: Icons.monitor_weight,
-                                        label: "Weight",
-                                        value: "58 kg",
-                                        color: Colors.blue),
-                                    const SizedBox(width: 12),
-                                    _healthCard(
-                                        icon: Icons.thermostat,
-                                        label: "Temperature",
-                                        value: "98.4 °F",
-                                        color: Colors.orange),
-                                  ],
-                                ),
-
-                                const SizedBox(height: 24),
-
-                                // Dedicated Booking Button
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: ElevatedButton.icon(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.teal,
-                                      padding: const EdgeInsets.symmetric(vertical: 14),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(14),
-                                      ),
-                                    ),
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => const AppointmentPage(),
-                                        ),
-                                      ).then((_) => _fetchPatientData());
-                                    },
-                                    icon: const Icon(Icons.calendar_month, color: Colors.white),
-                                    label: const Text(
-                                      "Book New Appointment",
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.white,
-                                      ),
-                                    ),
+                              // Quick Action Booking Card
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(24),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [primaryColor, const Color(0xFF10B981)],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
                                   ),
+                                  borderRadius: BorderRadius.circular(24),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: primaryColor.withOpacity(0.3),
+                                      blurRadius: 20,
+                                      offset: const Offset(0, 10),
+                                    ),
+                                  ],
                                 ),
-
-                                const SizedBox(height: 24),
-
-                                const Text("Upcoming Appointments",
-                                    style: TextStyle(
-                                        fontSize: 18, fontWeight: FontWeight.bold)),
-                                const SizedBox(height: 8),
-
-                                upcomingAppointments.isEmpty
-                                  ? const Card(
-                                      child: ListTile(
-                                          title: Text("No upcoming appointments.")
-                                      )
-                                    )
-                                  : Column(
-                                      children: upcomingAppointments.map((appt) {
-                                        return Card(
-                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                          margin: const EdgeInsets.only(bottom: 8),
-                                          child: ListTile(
-                                            leading: const Icon(Icons.event_available, color: Colors.teal),
-                                            title: Text("Dr. ${appt['doctorName'] ?? 'Unknown'}"),
-                                            subtitle: Text(
-                                              "${DateFormat('dd MMM yyyy').format((appt['date'] as Timestamp).toDate())} • ${appt['time']}"
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "How are you feeling\ntoday?",
+                                            style: GoogleFonts.plusJakartaSans(
+                                              color: Colors.white,
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                              height: 1.2,
                                             ),
                                           ),
-                                        );
-                                      }).toList(),
-                                    ),
-
-                                const SizedBox(height: 24),
-
-                                const Text("Active Prescriptions",
-                                    style: TextStyle(
-                                        fontSize: 18, fontWeight: FontWeight.bold)),
-                                const SizedBox(height: 8),
-
-                                Card(
-                                  child: activePrescription != null ? ListTile(
-                                    leading: const Icon(Icons.medication,
-                                        color: Colors.teal),
-                                    title: Text(activePrescription!['medicationName'] ?? 'Medication'),
-                                    subtitle:
-                                        Text(activePrescription!['dosage'] ?? 'Details'),
-                                    trailing: const Icon(Icons.arrow_forward_ios,
-                                        size: 16),
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (_) =>
-                                                const PrescriptionPage()),
-                                      );
-                                    },
-                                  ) : const ListTile(
-                                    title: Text("No active prescriptions"),
-                                  ),
-                                ),
-
-                                const SizedBox(height: 16),
-
-                                const Text("Recent Reports",
-                                    style: TextStyle(
-                                        fontSize: 18, fontWeight: FontWeight.bold)),
-                                const SizedBox(height: 8),
-
-                                Card(
-                                  child: recentReport != null ? ListTile(
-                                    leading: const Icon(Icons.description,
-                                        color: Colors.teal),
-                                    title: Text(recentReport!['title'] ?? 'Report'),
-                                    subtitle: Text("Uploaded on ${DateFormat('dd MMM yyyy').format((recentReport!['createdAt'] as Timestamp).toDate())}"),
-                                    trailing: const Icon(Icons.arrow_forward_ios,
-                                        size: 16),
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (_) => const ReportPage()),
-                                      ).then((_) => _fetchPatientData());
-                                    },
-                                  ) : const ListTile(title: Text("No recent reports based on history.")),
-                                ),
-
-                                const SizedBox(height: 12),
-
-                                // 📎 Upload Reports Button
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: OutlinedButton.icon(
-                                    style: OutlinedButton.styleFrom(
-                                      side: const BorderSide(
-                                          color: Colors.teal, width: 1.5),
-                                      padding:
-                                          const EdgeInsets.symmetric(vertical: 14),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(14),
+                                          const SizedBox(height: 16),
+                                          ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.white,
+                                              foregroundColor: primaryColor,
+                                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(12),
+                                              ),
+                                              elevation: 0,
+                                            ),
+                                            onPressed: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(builder: (_) => const AppointmentPage()),
+                                              ).then((_) => _fetchPatientData());
+                                            },
+                                            child: Text(
+                                              "Book Appointment",
+                                              style: GoogleFonts.plusJakartaSans(
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => const UploadReportPage(),
-                                        ),
-                                      ).then((_) => _fetchPatientData());
-                                    },
-                                    icon: const Icon(Icons.upload_file,
-                                        color: Colors.teal),
-                                    label: const Text(
-                                      "Upload Medical Reports",
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.teal,
+                                    Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.2),
+                                        shape: BoxShape.circle,
                                       ),
+                                      child: const Icon(Icons.medical_services, color: Colors.white, size: 48),
                                     ),
-                                  ),
+                                  ],
                                 ),
+                              ),
 
-                                const SizedBox(height: 12),
+                              const SizedBox(height: 32),
 
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: OutlinedButton.icon(
-                                    style: OutlinedButton.styleFrom(
-                                      side: const BorderSide(
-                                          color: Colors.blue, width: 1.5),
-                                      padding:
-                                          const EdgeInsets.symmetric(vertical: 14),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(14),
-                                      ),
-                                    ),
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => const MyLabTestsPage(),
-                                        ),
-                                      );
-                                    },
-                                    icon: const Icon(Icons.science,
-                                        color: Colors.blue),
-                                    label: const Text(
-                                      "My Lab Tests",
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.blue,
-                                      ),
-                                    ),
-                                  ),
+                              // Vitals
+                              Text(
+                                "Your Vitals",
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFF0F172A),
                                 ),
+                              ),
+                              const SizedBox(height: 16),
+                              Row(
+                                children: [
+                                  _vitalCard(icon: Icons.favorite, label: "Heart Rate", value: currentHeartRate, unit: "bpm", color: Colors.red),
+                                  const SizedBox(width: 16),
+                                  _vitalCard(icon: Icons.bloodtype, label: "Blood Press.", value: "$currentSystolic/$currentDiastolic", unit: "mmHg", color: Colors.blue),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              Row(
+                                children: [
+                                  _vitalCard(icon: Icons.monitor_weight, label: "Weight", value: "58", unit: "kg", color: Colors.orange),
+                                  const SizedBox(width: 16),
+                                  _vitalCard(icon: Icons.thermostat, label: "Temp", value: currentTemp, unit: "°F", color: Colors.purple),
+                                ],
+                              ),
 
-                                const SizedBox(height: 15),
+                              const SizedBox(height: 32),
 
-                                Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Colors.teal.shade100,
-                                        Colors.teal.shade50
+                              // Upcoming Appointments
+                              _sectionHeader("Upcoming Appointments", () {
+                                Navigator.push(context, MaterialPageRoute(builder: (_) => const AppointmentPage()));
+                              }),
+                              const SizedBox(height: 12),
+                              if (upcomingAppointments.isEmpty)
+                                _emptyStateCard("No upcoming appointments.", Icons.event_available)
+                              else
+                                ...upcomingAppointments.map((appt) {
+                                  return Container(
+                                    margin: const EdgeInsets.only(bottom: 12),
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(20),
+                                      boxShadow: [
+                                        BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4)),
                                       ],
                                     ),
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: const Row(
-                                    children: [
-                                      Icon(Icons.lightbulb, color: Colors.teal),
-                                      SizedBox(width: 10),
-                                      Expanded(
-                                        child: Text(
-                                          "Health Tip: Drink at least 2 liters of water daily and walk 30 minutes for a healthy heart.",
-                                          style: TextStyle(fontSize: 14),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(12),
+                                          decoration: BoxDecoration(
+                                            color: primaryColor.withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(16),
+                                          ),
+                                          child: Icon(Icons.calendar_month, color: primaryColor),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                "Dr. ${appt['doctorName'] ?? 'Unknown'}",
+                                                style: GoogleFonts.plusJakartaSans(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16,
+                                                  color: const Color(0xFF0F172A),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                "${DateFormat('MMM dd, yyyy').format((appt['date'] as Timestamp).toDate())} • ${appt['time']}",
+                                                style: GoogleFonts.plusJakartaSans(
+                                                  color: Colors.grey.shade600,
+                                                  fontSize: 13,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Icon(Icons.chevron_right, color: Colors.grey.shade400),
+                                      ],
+                                    ),
+                                  );
+                                }),
 
-                                const SizedBox(height: 30),
-                              ],
-                            ),
+                              const SizedBox(height: 32),
+
+                              // Active Prescriptions
+                              _sectionHeader("Active Prescription", () {
+                                Navigator.push(context, MaterialPageRoute(builder: (_) => const PrescriptionPage()));
+                              }),
+                              const SizedBox(height: 12),
+                              if (activePrescription != null)
+                                InkWell(
+                                  onTap: () {
+                                    Navigator.push(context, MaterialPageRoute(builder: (_) => const PrescriptionPage()));
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(20),
+                                      boxShadow: [
+                                        BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4)),
+                                      ],
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(12),
+                                          decoration: BoxDecoration(
+                                            color: Colors.blue.withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(16),
+                                          ),
+                                          child: const Icon(Icons.medication, color: Colors.blue),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                activePrescription!['medicationName'] ?? 'Medication',
+                                                style: GoogleFonts.plusJakartaSans(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16,
+                                                  color: const Color(0xFF0F172A),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                activePrescription!['dosage'] ?? 'Details',
+                                                style: GoogleFonts.plusJakartaSans(
+                                                  color: Colors.grey.shade600,
+                                                  fontSize: 13,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Icon(Icons.chevron_right, color: Colors.grey.shade400),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              else
+                                _emptyStateCard("No active prescriptions.", Icons.medication_liquid),
+
+                              const SizedBox(height: 32),
+
+                              // Recent Reports
+                              _sectionHeader("Recent Reports", () {
+                                Navigator.push(context, MaterialPageRoute(builder: (_) => const ReportPage())).then((_) => _fetchPatientData());
+                              }),
+                              const SizedBox(height: 12),
+                              if (recentReport != null)
+                                InkWell(
+                                  onTap: () {
+                                    Navigator.push(context, MaterialPageRoute(builder: (_) => const ReportPage())).then((_) => _fetchPatientData());
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(20),
+                                      boxShadow: [
+                                        BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4)),
+                                      ],
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(12),
+                                          decoration: BoxDecoration(
+                                            color: Colors.orange.withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(16),
+                                          ),
+                                          child: const Icon(Icons.description, color: Colors.orange),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                recentReport!['title'] ?? 'Report',
+                                                style: GoogleFonts.plusJakartaSans(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16,
+                                                  color: const Color(0xFF0F172A),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                "Uploaded ${DateFormat('MMM dd, yyyy').format((recentReport!['createdAt'] as Timestamp).toDate())}",
+                                                style: GoogleFonts.plusJakartaSans(
+                                                  color: Colors.grey.shade600,
+                                                  fontSize: 13,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Icon(Icons.chevron_right, color: Colors.grey.shade400),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              else
+                                _emptyStateCard("No recent reports.", Icons.insert_drive_file),
+
+                              const SizedBox(height: 32),
+
+                              // Quick Actions Grid
+                              Text(
+                                "Quick Actions",
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFF0F172A),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _quickActionButton(
+                                      icon: Icons.upload_file,
+                                      label: "Upload Report",
+                                      color: primaryColor,
+                                      onTap: () {
+                                        Navigator.push(context, MaterialPageRoute(builder: (_) => const UploadReportPage())).then((_) => _fetchPatientData());
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: _quickActionButton(
+                                      icon: Icons.science,
+                                      label: "Lab Tests",
+                                      color: Colors.blue,
+                                      onTap: () {
+                                        Navigator.push(context, MaterialPageRoute(builder: (_) => const MyLabTestsPage()));
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              const SizedBox(height: 32),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        selectedItemColor: Colors.teal,
-        onTap: _onBottomNavTap,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.chat), label: "Support"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
-        ],
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 20,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          child: BottomNavigationBar(
+            currentIndex: _currentIndex,
+            selectedItemColor: primaryColor,
+            unselectedItemColor: Colors.grey.shade400,
+            selectedLabelStyle: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600, fontSize: 12),
+            unselectedLabelStyle: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w500, fontSize: 12),
+            backgroundColor: Colors.white,
+            elevation: 0,
+            onTap: _onBottomNavTap,
+            items: const [
+              BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: "Home"),
+              BottomNavigationBarItem(icon: Icon(Icons.support_agent_rounded), label: "Support"),
+              BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: "Profile"),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  Widget _healthCard({
-    required IconData icon,
-    required String label,
-    required String value,
-    required Color color,
-  }) {
+  Widget _vitalCard({required IconData icon, required String label, required String value, required String unit, required Color color}) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: const [
-            BoxShadow(
-                color: Colors.black12, blurRadius: 6, offset: Offset(0, 3))
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4)),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CircleAvatar(
-              backgroundColor: color.withOpacity(0.1),
-              child: Icon(icon, color: color),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: color, size: 24),
             ),
-            const SizedBox(height: 10),
-            Text(label,
-                style: const TextStyle(color: Colors.grey, fontSize: 12)),
+            const SizedBox(height: 16),
+            Text(label, style: GoogleFonts.plusJakartaSans(color: Colors.grey.shade600, fontSize: 13, fontWeight: FontWeight.w500)),
             const SizedBox(height: 4),
-            Text(value,
-                style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(value, style: GoogleFonts.plusJakartaSans(fontSize: 22, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A))),
+                const SizedBox(width: 4),
+                Text(unit, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: Colors.grey.shade500)),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionHeader(String title, VoidCallback onSeeAll) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          title,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: const Color(0xFF0F172A),
+          ),
+        ),
+        TextButton(
+          onPressed: onSeeAll,
+          child: Text(
+            "See All",
+            style: GoogleFonts.plusJakartaSans(
+              color: primaryColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _emptyStateCard(String message, IconData icon) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: Colors.grey.shade300, size: 48),
+          const SizedBox(height: 12),
+          Text(
+            message,
+            style: GoogleFonts.plusJakartaSans(color: Colors.grey.shade500, fontSize: 14),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _quickActionButton({required IconData icon, required String label, required Color color, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: color.withOpacity(0.2)),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 32),
+            const SizedBox(height: 12),
+            Text(
+              label,
+              style: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF0F172A),
+                fontSize: 14,
+              ),
+            ),
           ],
         ),
       ),
