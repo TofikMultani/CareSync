@@ -82,7 +82,7 @@ class _PatientProfilePageState extends State<PatientProfilePage> {
                   child: const CircleAvatar(
                     radius: 40,
                     backgroundColor: Colors.white,
-                    child: Icon(Icons.person_rounded, size: 45, color: Color(0xFF059669)),
+                    backgroundImage: AssetImage('assets/images/patient_profile.png'),
                   ),
                 ),
                 const SizedBox(height: 16),

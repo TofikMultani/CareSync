@@ -51,6 +51,7 @@ dependencies:
   google_fonts: ^8.0.2
   health: ^13.3.1
   permission_handler: ^12.0.1
+  image_picker: ^1.2.2
 
 dev_dependencies:
   flutter_test:
@@ -77,6 +78,7 @@ flutter:
   assets:
     - assets/images/hospital_logo.png
     - assets/images/doctor_signature.png
+    - assets/images/patient_profile.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

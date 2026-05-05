@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
+import 'dart:io';
 
 class PatientEditableProfilePage extends StatefulWidget {
   const PatientEditableProfilePage({super.key, this.showScaffold = true});
@@ -18,6 +21,7 @@ class _PatientEditableProfilePageState
     extends State<PatientEditableProfilePage> {
   bool isEditing = false;
   bool _isLoading = true;
+  bool _isUploadingImage = false;
 
   final Color primaryColor = const Color(0xFF059669);
   final Color backgroundColor = const Color(0xFFF8FAFC);
@@ -34,6 +38,8 @@ class _PatientEditableProfilePageState
   final TextEditingController cityController = TextEditingController();
   final TextEditingController allergiesController = TextEditingController(text: "None");
   final TextEditingController chronicDiseaseController = TextEditingController(text: "None");
+  
+  String? profileImageUrl;
 
   Timer? _debounce;
 
@@ -50,25 +56,80 @@ class _PatientEditableProfilePageState
     _fetchProfileData();
   }
 
+  Future<void> _pickAndUploadImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+
+    if (image == null) return;
+
+    setState(() {
+      _isUploadingImage = true;
+    });
+
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user == null) throw Exception("User not logged in");
+
+      File file = File(image.path);
+      String fileName = 'profile_images/${user.uid}.jpg';
+      Reference storageRef = FirebaseStorage.instance.ref().child(fileName);
+
+      await storageRef.putFile(file);
+      String downloadUrl = await storageRef.getDownloadURL();
+
+      setState(() {
+        profileImageUrl = downloadUrl;
+      });
+
+      await _saveProfileData(silent: true);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Profile image updated!", style: GoogleFonts.plusJakartaSans()),
+            backgroundColor: primaryColor,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error uploading image: $e", style: GoogleFonts.plusJakartaSans()),
+            backgroundColor: Colors.red.shade400,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUploadingImage = false;
+        });
+      }
+    }
+  }
+
   Future<void> _fetchProfileData() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       try {
         DocumentSnapshot doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
         if (doc.exists && mounted) {
+          final data = doc.data() as Map<String, dynamic>?;
           setState(() {
-            nameController.text = doc.get('fullName') ?? '';
-            emailController.text = doc.get('email') ?? '';
-            phoneController.text = doc.get('phone') ?? '';
-            ageController.text = doc.get('age') ?? '';
-            genderController.text = doc.get('gender') ?? '';
-            bloodGroupController.text = doc.get('bloodGroup') ?? '';
-            heightController.text = doc.get('height') ?? '';
-            weightController.text = doc.get('weight') ?? '';
-            addressController.text = doc.get('address') ?? '';
-            cityController.text = doc.get('city') ?? '';
-            allergiesController.text = doc.get('allergies') ?? 'None';
-            chronicDiseaseController.text = doc.get('chronicDisease') ?? 'None';
+            nameController.text = data?['fullName'] ?? '';
+            emailController.text = data?['email'] ?? '';
+            phoneController.text = data?['phone'] ?? '';
+            ageController.text = data?['age'] ?? '';
+            genderController.text = data?['gender'] ?? '';
+            bloodGroupController.text = data?['bloodGroup'] ?? '';
+            heightController.text = data?['height'] ?? '';
+            weightController.text = data?['weight'] ?? '';
+            addressController.text = data?['address'] ?? '';
+            cityController.text = data?['city'] ?? '';
+            allergiesController.text = data?['allergies'] ?? 'None';
+            chronicDiseaseController.text = data?['chronicDisease'] ?? 'None';
+            profileImageUrl = data?['profileImageUrl'] ?? 'assets/images/patient_profile.png';
             _isLoading = false;
           });
         } else {
@@ -98,6 +159,7 @@ class _PatientEditableProfilePageState
           'city': cityController.text.trim(),
           'allergies': allergiesController.text.trim(),
           'chronicDisease': chronicDiseaseController.text.trim(),
+          'profileImageUrl': profileImageUrl ?? 'assets/images/patient_profile.png',
         }, SetOptions(merge: true));
         if (mounted && !silent) {
           setState(() {
@@ -182,17 +244,43 @@ class _PatientEditableProfilePageState
             ),
             child: Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: CircleAvatar(
-                    radius: 36,
-                    backgroundColor: Colors.white,
-                    child: Icon(Icons.person_rounded, size: 40, color: primaryColor),
-                  ),
+                Stack(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: CircleAvatar(
+                        radius: 36,
+                        backgroundColor: Colors.white,
+                        backgroundImage: (profileImageUrl != null && profileImageUrl!.startsWith('http'))
+                            ? NetworkImage(profileImageUrl!) as ImageProvider
+                            : AssetImage(profileImageUrl ?? 'assets/images/patient_profile.png'),
+                        child: _isUploadingImage 
+                            ? CircularProgressIndicator(color: primaryColor) 
+                            : null,
+                      ),
+                    ),
+                    if (isEditing)
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: GestureDetector(
+                          onTap: _pickAndUploadImage,
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: primaryColor,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                            ),
+                            child: const Icon(Icons.camera_alt_rounded, color: Colors.white, size: 14),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
                 const SizedBox(width: 20),
                 Expanded(
