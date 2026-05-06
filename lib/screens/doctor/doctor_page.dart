@@ -8,6 +8,7 @@ import 'package:healthcare_system/screens/admin/approve_requests_page.dart';
 import 'package:healthcare_system/screens/doctor/doctor_appointments_page.dart';
 import 'package:healthcare_system/login_page.dart';
 import 'package:healthcare_system/notification_page.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:healthcare_system/screens/change_password_page.dart';
 
 class DoctorPage extends StatefulWidget {
@@ -20,6 +21,8 @@ class DoctorPage extends StatefulWidget {
 class _DoctorPageState extends State<DoctorPage> {
   String doctorName = "Loading...";
   List<Map<String, dynamic>> pendingRequests = [];
+  int confirmedCount = 0;
+  int completedCount = 0;
 
   @override
   void initState() {
@@ -41,16 +44,26 @@ class _DoctorPageState extends State<DoctorPage> {
         QuerySnapshot apptSnapshot = await FirebaseFirestore.instance
             .collection('appointments')
             .where('doctorId', isEqualTo: user.uid)
-            .where('status', isEqualTo: 'Pending')
             .get();
 
         if (mounted) {
           setState(() {
-            pendingRequests = apptSnapshot.docs.map((doc) {
+            pendingRequests = [];
+            confirmedCount = 0;
+            completedCount = 0;
+
+            for (var doc in apptSnapshot.docs) {
               final data = doc.data() as Map<String, dynamic>;
               data['id'] = doc.id;
-              return data;
-            }).toList();
+              
+              if (data['status'] == 'Pending') {
+                pendingRequests.add(data);
+              } else if (data['status'] == 'Confirmed') {
+                confirmedCount++;
+              } else if (data['status'] == 'Completed') {
+                completedCount++;
+              }
+            }
           });
         }
       } catch (e) {
@@ -211,6 +224,61 @@ class _DoctorPageState extends State<DoctorPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const Text(
+                    "Appointments Overview",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Analytics Chart
+                  SizedBox(
+                    height: 180,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Card(
+                            elevation: 3,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Stack(
+                                children: [
+                                  const Center(child: Text("Appts", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey))),
+                                  PieChart(
+                                    PieChartData(
+                                      sectionsSpace: 2,
+                                      centerSpaceRadius: 25,
+                                      sections: [
+                                        PieChartSectionData(color: Colors.orange, value: pendingRequests.length.toDouble(), title: '${pendingRequests.length}', radius: 35, titleStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                                        PieChartSectionData(color: Colors.blue, value: confirmedCount.toDouble(), title: '$confirmedCount', radius: 35, titleStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                                        PieChartSectionData(color: Colors.green, value: completedCount.toDouble(), title: '$completedCount', radius: 35, titleStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _LegendItem(color: Colors.orange, text: "Pending (${pendingRequests.length})"),
+                              const SizedBox(height: 8),
+                              _LegendItem(color: Colors.blue, text: "Confirmed ($confirmedCount)"),
+                              const SizedBox(height: 8),
+                              _LegendItem(color: Colors.green, text: "Completed ($completedCount)"),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
                   const Text(
                     "Doctor Actions",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -424,6 +492,28 @@ class _RequestTile extends StatelessWidget {
           child: const Text("Approve"),
         ),
       ),
+    );
+  }
+}
+
+class _LegendItem extends StatelessWidget {
+  final Color color;
+  final String text;
+
+  const _LegendItem({required this.color, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 8),
+        Text(text, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+      ],
     );
   }
 }

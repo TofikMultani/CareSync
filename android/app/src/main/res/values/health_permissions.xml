@@ -4,5 +4,8 @@
         <item>android.permission.health.READ_HEART_RATE</item>
         <item>android.permission.health.READ_BLOOD_PRESSURE</item>
         <item>android.permission.health.READ_BODY_TEMPERATURE</item>
+        <item>android.permission.health.READ_STEPS</item>
+        <item>android.permission.health.READ_ACTIVE_CALORIES_BURNED</item>
+        <item>android.permission.health.READ_EXERCISE</item>
     </array>
 </resources>

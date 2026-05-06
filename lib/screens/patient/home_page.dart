@@ -31,11 +31,15 @@ class _HomePageState extends State<HomePage> {
   String currentSystolic = "--";
   String currentDiastolic = "--";
   String currentTemp = "--";
+  String currentSteps = "--";
+  String currentCalories = "--";
+  String currentActiveTime = "--";
 
   List<Map<String, dynamic>> upcomingAppointments = [];
   Map<String, dynamic>? activePrescription;
   Map<String, dynamic>? recentReport;
   bool isLoading = true;
+  bool isReminderSet = false;
   StreamSubscription<QuerySnapshot>? _prescriptionSubscription;
   bool _listenersSetup = false;
 
@@ -57,9 +61,15 @@ class _HomePageState extends State<HomePage> {
       HealthDataType.BLOOD_PRESSURE_SYSTOLIC,
       HealthDataType.BLOOD_PRESSURE_DIASTOLIC,
       HealthDataType.BODY_TEMPERATURE,
+      HealthDataType.STEPS,
+      HealthDataType.ACTIVE_ENERGY_BURNED,
+      HealthDataType.EXERCISE_TIME,
     ];
 
     final permissions = [
+      HealthDataAccess.READ,
+      HealthDataAccess.READ,
+      HealthDataAccess.READ,
       HealthDataAccess.READ,
       HealthDataAccess.READ,
       HealthDataAccess.READ,
@@ -84,6 +94,14 @@ class _HomePageState extends State<HomePage> {
       HealthDataPoint? latestDia;
       HealthDataPoint? latestTemp;
 
+      DateTime todayStart = DateTime(now.year, now.month, now.day);
+      int todaySteps = 0;
+      double todayCalories = 0.0;
+      int todayActiveMinutes = 0;
+
+      print("--- HEALTH DATA FETCH START ---");
+      print("Found ${healthData.length} records in the last 30 days.");
+
       for (var point in healthData) {
         if (point.type == HealthDataType.HEART_RATE) {
           if (latestHR == null || point.dateTo.isAfter(latestHR.dateTo)) latestHR = point;
@@ -94,7 +112,20 @@ class _HomePageState extends State<HomePage> {
         } else if (point.type == HealthDataType.BODY_TEMPERATURE) {
           if (latestTemp == null || point.dateTo.isAfter(latestTemp.dateTo)) latestTemp = point;
         }
+
+        if (point.dateFrom.isAfter(todayStart)) {
+          if (point.type == HealthDataType.STEPS) {
+            todaySteps += (double.tryParse(point.value.toString())?.round() ?? 0);
+          } else if (point.type == HealthDataType.ACTIVE_ENERGY_BURNED) {
+            todayCalories += (double.tryParse(point.value.toString()) ?? 0.0);
+          } else if (point.type == HealthDataType.EXERCISE_TIME) {
+            todayActiveMinutes += (double.tryParse(point.value.toString())?.round() ?? 0);
+          }
+        }
       }
+
+      print("Parsed metrics -> HR: $latestHR, Steps: $todaySteps, Calories: $todayCalories");
+      print("--- HEALTH DATA FETCH END ---");
 
       if (mounted) {
         setState(() {
@@ -102,6 +133,10 @@ class _HomePageState extends State<HomePage> {
           if (latestSys != null) currentSystolic = double.tryParse(latestSys.value.toString())?.round().toString() ?? currentSystolic;
           if (latestDia != null) currentDiastolic = double.tryParse(latestDia.value.toString())?.round().toString() ?? currentDiastolic;
           if (latestTemp != null) currentTemp = double.tryParse(latestTemp.value.toString())?.toStringAsFixed(1) ?? currentTemp;
+          
+          if (todaySteps > 0) currentSteps = todaySteps.toString();
+          if (todayCalories > 0) currentCalories = todayCalories.round().toString();
+          if (todayActiveMinutes > 0) currentActiveTime = todayActiveMinutes.toString();
         });
       }
     } catch (e) {
@@ -363,7 +398,7 @@ class _HomePageState extends State<HomePage> {
 
                               // Vitals
                               Text(
-                                "Your Vitals",
+                                "Your Health Activity",
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -373,15 +408,23 @@ class _HomePageState extends State<HomePage> {
                               const SizedBox(height: 16),
                               Row(
                                 children: [
-                                  _vitalCard(icon: Icons.favorite, label: "Heart Rate", value: currentHeartRate, unit: "bpm", color: Colors.red),
+                                  _vitalCard(icon: Icons.directions_walk, label: "Steps Today", value: currentSteps, unit: "steps", color: Colors.green),
                                   const SizedBox(width: 16),
-                                  _vitalCard(icon: Icons.bloodtype, label: "Blood Press.", value: "$currentSystolic/$currentDiastolic", unit: "mmHg", color: Colors.blue),
+                                  _vitalCard(icon: Icons.local_fire_department, label: "Calories", value: currentCalories, unit: "kcal", color: Colors.deepOrange),
                                 ],
                               ),
                               const SizedBox(height: 16),
                               Row(
                                 children: [
-                                  _vitalCard(icon: Icons.monitor_weight, label: "Weight", value: "58", unit: "kg", color: Colors.orange),
+                                  _vitalCard(icon: Icons.timer, label: "Active Time", value: currentActiveTime, unit: "mins", color: Colors.blueAccent),
+                                  const SizedBox(width: 16),
+                                  _vitalCard(icon: Icons.favorite, label: "Heart Rate", value: currentHeartRate, unit: "bpm", color: Colors.red),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              Row(
+                                children: [
+                                  _vitalCard(icon: Icons.bloodtype, label: "Blood Press.", value: "$currentSystolic/$currentDiastolic", unit: "mmHg", color: Colors.blue),
                                   const SizedBox(width: 16),
                                   _vitalCard(icon: Icons.thermostat, label: "Temp", value: currentTemp, unit: "°F", color: Colors.purple),
                                 ],
@@ -456,56 +499,71 @@ class _HomePageState extends State<HomePage> {
                               }),
                               const SizedBox(height: 12),
                               if (activePrescription != null)
-                                InkWell(
-                                  onTap: () {
-                                    Navigator.push(context, MaterialPageRoute(builder: (_) => const PrescriptionPage()));
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(20),
-                                      boxShadow: [
-                                        BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4)),
-                                      ],
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.all(12),
-                                          decoration: BoxDecoration(
-                                            color: Colors.blue.withOpacity(0.1),
-                                            borderRadius: BorderRadius.circular(16),
+                                Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(20),
+                                    boxShadow: [
+                                      BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4)),
+                                    ],
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.all(12),
+                                            decoration: BoxDecoration(
+                                              color: Colors.blue.withOpacity(0.1),
+                                              borderRadius: BorderRadius.circular(16),
+                                            ),
+                                            child: const Icon(Icons.medication, color: Colors.blue),
                                           ),
-                                          child: const Icon(Icons.medication, color: Colors.blue),
-                                        ),
-                                        const SizedBox(width: 16),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                activePrescription!['medicationName'] ?? 'Medication',
-                                                style: GoogleFonts.plusJakartaSans(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 16,
-                                                  color: const Color(0xFF0F172A),
+                                          const SizedBox(width: 16),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  activePrescription!['medicationName'] ?? 'Medication',
+                                                  style: GoogleFonts.plusJakartaSans(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 16,
+                                                    color: const Color(0xFF0F172A),
+                                                  ),
                                                 ),
-                                              ),
-                                              const SizedBox(height: 4),
-                                              Text(
-                                                activePrescription!['dosage'] ?? 'Details',
-                                                style: GoogleFonts.plusJakartaSans(
-                                                  color: Colors.grey.shade600,
-                                                  fontSize: 13,
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  activePrescription!['dosage'] ?? 'Details',
+                                                  style: GoogleFonts.plusJakartaSans(
+                                                    color: Colors.grey.shade600,
+                                                    fontSize: 13,
+                                                  ),
                                                 ),
-                                              ),
-                                            ],
+                                              ],
+                                            ),
                                           ),
-                                        ),
-                                        Icon(Icons.chevron_right, color: Colors.grey.shade400),
-                                      ],
-                                    ),
+                                          IconButton(
+                                            icon: Icon(isReminderSet ? Icons.alarm_on : Icons.alarm_add, 
+                                                color: isReminderSet ? Colors.green : Colors.grey.shade400),
+                                            onPressed: () {
+                                              if (!isReminderSet) {
+                                                NotificationService.scheduleMedicationReminder(
+                                                  1, 
+                                                  activePrescription!['medicationName'] ?? 'Medication', 
+                                                  activePrescription!['dosage'] ?? 'Morning'
+                                                );
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  const SnackBar(content: Text("Reminder scheduled for 10 seconds from now (Demo)")),
+                                                );
+                                                setState(() => isReminderSet = true);
+                                              }
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ],
                                   ),
                                 )
                               else

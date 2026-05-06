@@ -9,6 +9,7 @@ import 'package:healthcare_system/screens/admin/admin_reports_page.dart';
 import 'package:healthcare_system/screens/admin/admin_settings_page.dart';
 import 'package:healthcare_system/screens/admin/approve_requests_page.dart';
 import 'package:healthcare_system/screens/admin/support_chat_list_page.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:healthcare_system/screens/change_password_page.dart';
 
 class AdminPage extends StatefulWidget {
@@ -141,26 +142,52 @@ class _AdminPageState extends State<AdminPage> {
                   // Quick Stats
                   const Text("System Overview",
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-
-                  Row(
-                    children: [
-                      _StatCard(
-                          title: "Doctors", value: "$doctorsCount", icon: Icons.local_hospital),
-                      const SizedBox(width: 8),
-                      _StatCard(title: "Patients", value: "$patientsCount", icon: Icons.group),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      _StatCard(title: "Staff", value: "$staffCount", icon: Icons.people),
-                      const SizedBox(width: 8),
-                      _StatCard(title: "Lab Tests", value: "$labTestsCount", icon: Icons.science),
-                    ],
-                  ),
-
                   const SizedBox(height: 16),
+
+                  SizedBox(
+                    height: 200,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Card(
+                            elevation: 3,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Stack(
+                                children: [
+                                  const Center(child: Text("Users", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey))),
+                                  PieChart(
+                                    PieChartData(
+                                      sectionsSpace: 2,
+                                      centerSpaceRadius: 30,
+                                      sections: [
+                                        PieChartSectionData(color: Colors.teal, value: doctorsCount.toDouble(), title: 'Doc', radius: 40, titleStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                                        PieChartSectionData(color: Colors.blue, value: patientsCount.toDouble(), title: 'Pat', radius: 40, titleStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                                        PieChartSectionData(color: Colors.orange, value: staffCount.toDouble(), title: 'Stf', radius: 40, titleStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            children: [
+                              _StatCard(title: "Total Users", value: "${doctorsCount + patientsCount + staffCount}", icon: Icons.people_alt),
+                              const SizedBox(height: 8),
+                              _StatCard(title: "Lab Tests", value: "$labTestsCount", icon: Icons.science),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
 
                   // Management Section
                   const Text("Management",
